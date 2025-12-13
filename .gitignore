@@ -1,9 +1,4 @@
-# Ignore everything
 *
-
-# Except releases directory
-!releases/
-!releases/*.vsix
-
-# Keep .gitignore itself
 !.gitignore
+!.vscodeignore
+
