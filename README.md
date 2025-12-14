@@ -8,10 +8,10 @@ Auto Accept Agent automatically handles those repetitive "Accept", "Run", and "C
 
 ## 🎯 Supported Platforms
 
-| Platform | Method | Setup Difficulty |
-|----------|--------|------------------|
+| Platform | Method | Setup |
+|----------|--------|-------|
 | **VS Code / Antigravity** | Extension (automatic) | ⭐ Easy |
-| **Cursor IDE** | Script Injection | ⭐⭐ Medium |
+| **Cursor IDE** | Console Script | ⭐ Easy |
 
 ---
 
@@ -27,96 +27,38 @@ Auto Accept Agent automatically handles those repetitive "Accept", "Run", and "C
 
 ---
 
-### For Cursor IDE (Script Injection)
+### For Cursor IDE
 
-Cursor's Composer UI doesn't expose commands to extensions, so we use **script injection** via the "Custom CSS and JS Loader" extension.
+When you toggle the extension ON in Cursor, it will:
+1. **Copy the auto-accept script** to your clipboard
+2. **Open DevTools** automatically
 
-#### Step 1: Install Custom CSS and JS Loader
+Then just:
+1. Type `allow pasting` in the Console and press Enter
+2. Paste the script (Ctrl+V) and press Enter
+3. Done! ✅
 
-1. Open Cursor
-2. Go to Extensions (Ctrl+Shift+X)
-3. Search for **"Custom CSS and JS Loader"** by be5invis
-4. Install it
-
-#### Step 2: Save the Injection Script
-
-1. Create a folder for scripts, e.g., `C:\Scripts\` (Windows) or `~/Scripts/` (Mac/Linux)
-2. Copy `cursor-injection-script.js` from this extension to that folder
-3. Note the full path, e.g., `C:\Scripts\cursor-injection-script.js`
-
-#### Step 3: Configure Cursor Settings
-
-1. Open Command Palette (Ctrl+Shift+P)
-2. Type **"Open User Settings (JSON)"** and select it
-3. Add this to your `settings.json`:
-
-**Windows:**
-```json
-{
-  "vscode_custom_css.imports": [
-    "file:///C:/Scripts/cursor-injection-script.js"
-  ]
-}
+**Controls** (in Console):
+```javascript
+autoAccept.start()   // Start auto-accepting
+autoAccept.stop()    // Stop
+autoAccept.toggle()  // Toggle on/off
+autoAccept.status()  // Show click count
 ```
-
-**Mac/Linux:**
-```json
-{
-  "vscode_custom_css.imports": [
-    "file:///Users/yourname/Scripts/cursor-injection-script.js"
-  ]
-}
-```
-
-#### Step 4: Enable and Restart
-
-1. Open Command Palette (Ctrl+Shift+P)
-2. Run **"Enable Custom CSS and JS"**
-3. **Restart Cursor** (close completely and reopen)
-4. On Windows, you may need to run Cursor as Administrator
-
-#### Step 5: Verify
-
-- You should see a green **"⚡ AutoAccept"** indicator in the bottom-right corner
-- Click it to toggle ON/OFF
-- Use DevTools Console (Help → Toggle Developer Tools) for more controls:
-  ```javascript
-  autoAccept.start()   // Start
-  autoAccept.stop()    // Stop
-  autoAccept.toggle()  // Toggle
-  autoAccept.status()  // Show stats
-  ```
 
 ---
 
 ## ⚙️ How It Works
 
 ### VS Code Extension
-- Polls for available accept commands every 300ms
-- Executes registered VS Code commands like `editor.action.inlineSuggest.commit`
+- Polls for available accept commands every second
+- Executes registered VS Code commands
 - Works with Antigravity, Copilot, and VS Code Chat
 
-### Cursor Injection Script
-- Injected at application startup via Custom CSS and JS Loader
-- Scans DOM for buttons with text like "Accept", "Accept All", "Run"
+### Cursor Script
+- Scans DOM for buttons with text like "Accept", "Run", "Apply"
 - Simulates mouse events to click them
-- Shows visual indicator for status
-
----
-
-## 🔧 Troubleshooting
-
-### Cursor: "Corrupt Installation" Warning
-This is expected when using Custom CSS and JS Loader. The extension modifies Cursor's core files. Click "Don't Show Again" - it's safe.
-
-### Cursor: Script Not Loading
-1. Check the file path in settings.json (use forward slashes `/` even on Windows)
-2. Make sure the path starts with `file:///`
-3. Try running Cursor as Administrator
-4. Re-run "Enable Custom CSS and JS" after updates
-
-### Cursor: Need to Re-enable After Updates
-Cursor updates may reset the injection. Just run "Enable Custom CSS and JS" again and restart.
+- Excludes dangerous buttons (Skip, Cancel, Reject, etc.)
 
 ---
 
@@ -131,19 +73,18 @@ Always review critical code changes manually.
 
 ---
 
-## 📁 Files Included
+## 📁 Files
 
 | File | Purpose |
 |------|---------|
 | `extension.js` | Main VS Code extension |
-| `cursor-injection-script.js` | Script for Cursor (via Custom CSS and JS Loader) |
-| `cursor-console-script.js` | Alternative: paste directly into DevTools Console |
+| `cursor-console-script.js` | Script for Cursor (copied to clipboard) |
 
 ---
 
 ## 🙏 Credits
 
-Cursor injection approach inspired by [TRUE YOLO MODE](https://github.com/ivalsaraj/true-yolo-cursor-auto-accept-full-agentic-mode) by @ivalsaraj.
+Cursor script inspired by [TRUE YOLO MODE](https://github.com/ivalsaraj/true-yolo-cursor-auto-accept-full-agentic-mode) by @ivalsaraj.
 
 ---
 
