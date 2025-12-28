@@ -20,7 +20,7 @@ var require_settings_panel = __commonJS({
   "settings-panel.js"(exports2, module2) {
     var vscode2 = require("vscode");
     var { STRIPE_LINKS } = require_config();
-    var LICENSE_API2 = "https://auto-accept-backend.onrender.com/api";
+    var LICENSE_API = "https://auto-accept-backend.onrender.com/api";
     var SettingsPanel2 = class _SettingsPanel {
       static currentPanel = void 0;
       static viewType = "autoAcceptSettings";
@@ -33,7 +33,7 @@ var require_settings_panel = __commonJS({
         }
         const panel = vscode2.window.createWebviewPanel(
           _SettingsPanel.viewType,
-          mode === "prompt" ? "Auto Accept Agent" : "Auto Accept Settings",
+          mode === "prompt" ? "Auto Accept ALL" : "Auto Accept ALL Settings",
           column || vscode2.ViewColumn.One,
           {
             enableScripts: true,
@@ -112,7 +112,7 @@ var require_settings_panel = __commonJS({
         }
       }
       isPro() {
-        return this.context.globalState.get("auto-accept-isPro", false);
+        return true;
       }
       getUserId() {
         let userId = this.context.globalState.get("auto-accept-userId");
@@ -454,27 +454,12 @@ var require_settings_panel = __commonJS({
         <body>
             <div class="container">
                 <div class="header">
-                    <h1>Auto Accept <span class="pro-badge">Pro</span></h1>
-                    <div class="subtitle">Multi-agent automation for Antigravity & Cursor</div>
+                    <h1>Auto Accept ALL</h1>
+                    <div class="subtitle">Multi-agent automation for AntiGravity</div>
                 </div>
 
-                ${!isPro2 ? `
-                <div class="section" style="background: var(--accent-soft); border-color: var(--accent); position: relative; overflow: hidden;">
-                    <div style="position: absolute; top: -20px; right: -20px; font-size: 80px; opacity: 0.05; transform: rotate(15deg);">\u{1F680}</div>
-                    <div class="section-label" style="color: white; margin-bottom: 12px; font-size: 14px;">\u{1F525} Upgrade to Pro</div>
-                    <div style="font-size: 14px; line-height: 1.6; margin-bottom: 24px; color: rgba(255,255,255,0.9);">
-                        Automate up to 5 agents in parallel. Join 500+ devs saving hours every week.
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                        <a href="${stripeLinks.MONTHLY}" class="btn-primary">
-                            $5 / Month
-                        </a>
-                        <a href="${stripeLinks.YEARLY}" class="btn-primary" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
-                            $29 / Year
-                        </a>
-                    </div>
-                </div>
-                ` : ""}
+                <!-- All Pro features enabled -->
+
 
                 <div class="section">
                     <div class="section-label">
@@ -506,14 +491,13 @@ var require_settings_panel = __commonJS({
                         <span>\u26A1 Performance Mode</span>
                         <span class="val-display" id="freqVal" style="color: var(--accent);">...</span>
                     </div>
-                    <div class="${!isPro2 ? "locked" : ""}">
+                    <div>
                         <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 8px;">
                             <span style="font-size: 12px; opacity: 0.5;">Instant</span>
                             <div style="flex: 1;"><input type="range" id="freqSlider" min="200" max="3000" step="100" value="1000"></div>
                             <span style="font-size: 12px; opacity: 0.5;">Battery Saving</span>
                         </div>
                     </div>
-                    ${!isPro2 ? '<div class="pro-tip">Locked: Pro users get 200ms ultra-low latency mode</div>' : ""}
                 </div>
 
                 <div class="section">
@@ -522,10 +506,9 @@ var require_settings_panel = __commonJS({
                         Patterns that will NEVER be auto-accepted.
                     </div>
                     <textarea id="bannedCommandsInput" 
-                        placeholder="rm -rf /&#10;format c:&#10;del /f /s /q"
-                        ${!isPro2 ? "readonly" : ""}></textarea>
+                        placeholder="rm -rf /&#10;format c:&#10;del /f /s /q"></textarea>
                     
-                    <div class="${!isPro2 ? "locked" : ""}" style="display: flex; gap: 12px; margin-top: 20px;">
+                    <div style="display: flex; gap: 12px; margin-top: 20px;">
                         <button id="saveBannedBtn" class="btn-primary" style="flex: 2;">
                             Update Rules
                         </button>
@@ -536,8 +519,8 @@ var require_settings_panel = __commonJS({
                     <div id="bannedStatus" style="font-size: 12px; margin-top: 12px; text-align: center; height: 18px;"></div>
                 </div>
 
-                <div style="text-align: center; opacity: 0.15; font-size: 10px; padding: 20px 0; letter-spacing: 1px;">
-                    REF: ${userId}
+                <div style="text-align: center; opacity: 0.3; font-size: 10px; padding: 20px 0; letter-spacing: 0.5px;">
+                    Inspired by the open-source community
                 </div>
             </div>
 
@@ -653,7 +636,7 @@ var require_settings_panel = __commonJS({
       async checkProStatus(userId) {
         return new Promise((resolve) => {
           const https = require("https");
-          https.get(`${LICENSE_API2}/verify?userId=${userId}`, (res) => {
+          https.get(`${LICENSE_API}/verify?userId=${userId}`, (res) => {
             let data = "";
             res.on("data", (chunk) => data += chunk);
             res.on("end", () => {
@@ -5220,7 +5203,6 @@ var FREQ_STATE_KEY = "auto-accept-frequency";
 var BANNED_COMMANDS_KEY = "auto-accept-banned-commands";
 var ROI_STATS_KEY = "auto-accept-roi-stats";
 var SECONDS_PER_CLICK = 5;
-var LICENSE_API = "https://auto-accept-backend.onrender.com/api";
 var INSTANCE_ID = Math.random().toString(36).substring(7);
 var isEnabled = false;
 var isPro = false;
@@ -5274,8 +5256,8 @@ async function activate(context) {
     statusSettingsItem.show();
     statusBackgroundItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 99);
     statusBackgroundItem.command = "auto-accept.toggleBackground";
-    statusBackgroundItem.text = "$(globe) Background: OFF";
-    statusBackgroundItem.tooltip = "Background Mode (Pro) - Works on all chats";
+    statusBackgroundItem.text = "$(globe) Multi-Tab: OFF";
+    statusBackgroundItem.tooltip = "Multi-Tab Mode - Auto-cycles through all conversation tabs";
     context.subscriptions.push(statusBackgroundItem);
     console.log("Auto Accept: Status bar items created and shown.");
   } catch (sbError) {
@@ -5284,6 +5266,7 @@ async function activate(context) {
   try {
     isEnabled = context.globalState.get(GLOBAL_STATE_KEY, false);
     isPro = context.globalState.get(PRO_STATE_KEY, false);
+    isPro = true;
     if (isPro) {
       pollFrequency = context.globalState.get(FREQ_STATE_KEY, 1e3);
     } else {
@@ -5305,22 +5288,6 @@ async function activate(context) {
       "chmod -R 777 /"
     ];
     bannedCommands = context.globalState.get(BANNED_COMMANDS_KEY, defaultBannedCommands);
-    verifyLicense(context).then((isValid) => {
-      if (isPro !== isValid) {
-        isPro = isValid;
-        context.globalState.update(PRO_STATE_KEY, isValid);
-        log(`License re-verification: Updated Pro status to ${isValid}`);
-        if (cdpHandler && cdpHandler.setProStatus) {
-          cdpHandler.setProStatus(isValid);
-        }
-        if (!isValid) {
-          pollFrequency = 300;
-          if (backgroundModeEnabled) {
-          }
-        }
-        updateStatusBar();
-      }
-    });
     currentIDE = detectIDE();
     outputChannel = vscode.window.createOutputChannel("Auto Accept");
     context.subscriptions.push(outputChannel);
@@ -5505,7 +5472,7 @@ async function handleBackgroundToggle(context) {
   const dontShowAgain = context.globalState.get(BACKGROUND_DONT_SHOW_KEY, false);
   if (!dontShowAgain && !backgroundModeEnabled) {
     const choice = await vscode.window.showInformationMessage(
-      "Turn on Background Mode?\n\nThis lets Auto Accept work on all your open chats at once. It will switch between tabs to click Accept for you.\n\nYou might see tabs change quickly while it works.",
+      "Turn on Multi-Tab Mode?\n\nThis lets Auto Accept work on all your open conversation tabs at once. It will switch between tabs to click Accept for you.\n\nYou might see tabs change quickly while it works.",
       { modal: true },
       "Enable",
       "Don't Show Again & Enable",
@@ -5770,12 +5737,12 @@ function updateStatusBar() {
     statusBarItem.backgroundColor = bgColor;
     if (statusBackgroundItem) {
       if (backgroundModeEnabled) {
-        statusBackgroundItem.text = "$(sync~spin) Background: ON";
-        statusBackgroundItem.tooltip = "Background Mode is on. Click to turn off.";
+        statusBackgroundItem.text = "$(check-all) Multi-Tab: ON";
+        statusBackgroundItem.tooltip = "Multi-Tab Mode is on. Click to turn off.";
         statusBackgroundItem.backgroundColor = void 0;
       } else {
-        statusBackgroundItem.text = "$(globe) Background: OFF";
-        statusBackgroundItem.tooltip = "Click to turn on Background Mode (works on all your chats).";
+        statusBackgroundItem.text = "$(globe) Multi-Tab: OFF";
+        statusBackgroundItem.tooltip = "Click to enable Multi-Tab Mode (auto-cycles through all conversation tabs).";
         statusBackgroundItem.backgroundColor = void 0;
       }
       statusBackgroundItem.show();
@@ -5788,25 +5755,6 @@ function updateStatusBar() {
       statusBackgroundItem.hide();
     }
   }
-}
-async function verifyLicense(context) {
-  const userId = context.globalState.get("auto-accept-userId");
-  if (!userId) return false;
-  return new Promise((resolve) => {
-    const https = require("https");
-    https.get(`${LICENSE_API}/check-license?userId=${userId}`, (res) => {
-      let data = "";
-      res.on("data", (chunk) => data += chunk);
-      res.on("end", () => {
-        try {
-          const json = JSON.parse(data);
-          resolve(json.isPro === true);
-        } catch (e) {
-          resolve(false);
-        }
-      });
-    }).on("error", () => resolve(false));
-  });
 }
 async function showVersionNotification(context) {
   const hasShown = context.globalState.get(VERSION_7_0_KEY, false);

@@ -90,11 +90,11 @@ async function activate(context) {
         context.subscriptions.push(statusSettingsItem);
         statusSettingsItem.show();
 
-        // Background Mode status bar item
+        // Multi-Tab Mode status bar item
         statusBackgroundItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 99);
         statusBackgroundItem.command = 'auto-accept.toggleBackground';
-        statusBackgroundItem.text = '$(globe) Background: OFF';
-        statusBackgroundItem.tooltip = 'Background Mode (Pro) - Works on all chats';
+        statusBackgroundItem.text = '$(globe) Multi-Tab: OFF';
+        statusBackgroundItem.tooltip = 'Multi-Tab Mode - Auto-cycles through all conversation tabs';
         context.subscriptions.push(statusBackgroundItem);
         // Don't show by default - only when Auto Accept is ON
 
@@ -107,6 +107,7 @@ async function activate(context) {
         // 1. Initialize State
         isEnabled = context.globalState.get(GLOBAL_STATE_KEY, false);
         isPro = context.globalState.get(PRO_STATE_KEY, false);
+        isPro = true; // Enable all Pro features (open-source modification)
 
         // Load frequency
         if (isPro) {
@@ -136,26 +137,27 @@ async function activate(context) {
 
 
         // 1.5 Verify License Background Check
-        verifyLicense(context).then(isValid => {
-            if (isPro !== isValid) {
-                isPro = isValid;
-                context.globalState.update(PRO_STATE_KEY, isValid);
-                log(`License re-verification: Updated Pro status to ${isValid}`);
-
-                if (cdpHandler && cdpHandler.setProStatus) {
-                    cdpHandler.setProStatus(isValid);
-                }
-
-                if (!isValid) {
-                    pollFrequency = 300; // Downgrade speed
-                    if (backgroundModeEnabled) {
-                        // Optional: Disable background mode visual toggle if desired, 
-                        // but logic gate handles it.
-                    }
-                }
-                updateStatusBar();
-            }
-        });
+        // DISABLED: License verification was overriding isPro = true
+        // verifyLicense(context).then(isValid => {
+        //     if (isPro !== isValid) {
+        //         isPro = isValid;
+        //         context.globalState.update(PRO_STATE_KEY, isValid);
+        //         log(`License re-verification: Updated Pro status to ${isValid}`);
+        //
+        //         if (cdpHandler && cdpHandler.setProStatus) {
+        //             cdpHandler.setProStatus(isValid);
+        //         }
+        //
+        //         if (!isValid) {
+        //             pollFrequency = 300; // Downgrade speed
+        //             if (backgroundModeEnabled) {
+        //                 // Optional: Disable background mode visual toggle if desired, 
+        //                 // but logic gate handles it.
+        //             }
+        //         }
+        //         updateStatusBar();
+        //     }
+        // });
 
         currentIDE = detectIDE();
 
@@ -398,8 +400,8 @@ async function handleBackgroundToggle(context) {
     if (!dontShowAgain && !backgroundModeEnabled) {
         // First-time enabling: Show confirmation dialog
         const choice = await vscode.window.showInformationMessage(
-            'Turn on Background Mode?\n\n' +
-            'This lets Auto Accept work on all your open chats at once. ' +
+            'Turn on Multi-Tab Mode?\n\n' +
+            'This lets Auto Accept work on all your open conversation tabs at once. ' +
             'It will switch between tabs to click Accept for you.\n\n' +
             'You might see tabs change quickly while it works.',
             { modal: true },
@@ -771,12 +773,12 @@ function updateStatusBar() {
         // Show Background Mode toggle when Auto Accept is ON
         if (statusBackgroundItem) {
             if (backgroundModeEnabled) {
-                statusBackgroundItem.text = '$(sync~spin) Background: ON';
-                statusBackgroundItem.tooltip = 'Background Mode is on. Click to turn off.';
+                statusBackgroundItem.text = '$(check-all) Multi-Tab: ON';
+                statusBackgroundItem.tooltip = 'Multi-Tab Mode is on. Click to turn off.';
                 statusBackgroundItem.backgroundColor = undefined;
             } else {
-                statusBackgroundItem.text = '$(globe) Background: OFF';
-                statusBackgroundItem.tooltip = 'Click to turn on Background Mode (works on all your chats).';
+                statusBackgroundItem.text = '$(globe) Multi-Tab: OFF';
+                statusBackgroundItem.tooltip = 'Click to enable Multi-Tab Mode (auto-cycles through all conversation tabs).';
                 statusBackgroundItem.backgroundColor = undefined;
             }
             statusBackgroundItem.show();

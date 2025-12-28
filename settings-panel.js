@@ -23,7 +23,7 @@ class SettingsPanel {
         // Otherwise, create a new panel.
         const panel = vscode.window.createWebviewPanel(
             SettingsPanel.viewType,
-            mode === 'prompt' ? 'Auto Accept Agent' : 'Auto Accept Settings',
+            mode === 'prompt' ? 'Auto Accept ALL' : 'Auto Accept ALL Settings',
             column || vscode.ViewColumn.One,
             {
                 enableScripts: true,
@@ -115,7 +115,7 @@ class SettingsPanel {
     }
 
     isPro() {
-        return this.context.globalState.get('auto-accept-isPro', false);
+        return true; // All features enabled (open-source modification)
     }
 
     getUserId() {
@@ -476,27 +476,12 @@ class SettingsPanel {
         <body>
             <div class="container">
                 <div class="header">
-                    <h1>Auto Accept <span class="pro-badge">Pro</span></h1>
-                    <div class="subtitle">Multi-agent automation for Antigravity & Cursor</div>
+                    <h1>Auto Accept ALL</h1>
+                    <div class="subtitle">Multi-agent automation for AntiGravity</div>
                 </div>
 
-                ${!isPro ? `
-                <div class="section" style="background: var(--accent-soft); border-color: var(--accent); position: relative; overflow: hidden;">
-                    <div style="position: absolute; top: -20px; right: -20px; font-size: 80px; opacity: 0.05; transform: rotate(15deg);">🚀</div>
-                    <div class="section-label" style="color: white; margin-bottom: 12px; font-size: 14px;">🔥 Upgrade to Pro</div>
-                    <div style="font-size: 14px; line-height: 1.6; margin-bottom: 24px; color: rgba(255,255,255,0.9);">
-                        Automate up to 5 agents in parallel. Join 500+ devs saving hours every week.
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                        <a href="${stripeLinks.MONTHLY}" class="btn-primary">
-                            $5 / Month
-                        </a>
-                        <a href="${stripeLinks.YEARLY}" class="btn-primary" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
-                            $29 / Year
-                        </a>
-                    </div>
-                </div>
-                ` : ''}
+                <!-- All Pro features enabled -->
+
 
                 <div class="section">
                     <div class="section-label">
@@ -528,14 +513,13 @@ class SettingsPanel {
                         <span>⚡ Performance Mode</span>
                         <span class="val-display" id="freqVal" style="color: var(--accent);">...</span>
                     </div>
-                    <div class="${!isPro ? 'locked' : ''}">
+                    <div>
                         <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 8px;">
                             <span style="font-size: 12px; opacity: 0.5;">Instant</span>
                             <div style="flex: 1;"><input type="range" id="freqSlider" min="200" max="3000" step="100" value="1000"></div>
                             <span style="font-size: 12px; opacity: 0.5;">Battery Saving</span>
                         </div>
                     </div>
-                    ${!isPro ? '<div class="pro-tip">Locked: Pro users get 200ms ultra-low latency mode</div>' : ''}
                 </div>
 
                 <div class="section">
@@ -544,10 +528,9 @@ class SettingsPanel {
                         Patterns that will NEVER be auto-accepted.
                     </div>
                     <textarea id="bannedCommandsInput" 
-                        placeholder="rm -rf /&#10;format c:&#10;del /f /s /q"
-                        ${!isPro ? 'readonly' : ''}></textarea>
+                        placeholder="rm -rf /&#10;format c:&#10;del /f /s /q"></textarea>
                     
-                    <div class="${!isPro ? 'locked' : ''}" style="display: flex; gap: 12px; margin-top: 20px;">
+                    <div style="display: flex; gap: 12px; margin-top: 20px;">
                         <button id="saveBannedBtn" class="btn-primary" style="flex: 2;">
                             Update Rules
                         </button>
@@ -558,8 +541,8 @@ class SettingsPanel {
                     <div id="bannedStatus" style="font-size: 12px; margin-top: 12px; text-align: center; height: 18px;"></div>
                 </div>
 
-                <div style="text-align: center; opacity: 0.15; font-size: 10px; padding: 20px 0; letter-spacing: 1px;">
-                    REF: ${userId}
+                <div style="text-align: center; opacity: 0.3; font-size: 10px; padding: 20px 0; letter-spacing: 0.5px;">
+                    Inspired by the open-source community
                 </div>
             </div>
 

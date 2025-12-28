@@ -219,7 +219,61 @@
     // Initialize Analytics
     Analytics.initialize(log);
 
+    // --- THROTTLE-RESISTANT TIMER (Web Worker) ---
+    // Browsers throttle setTimeout in background tabs to save battery.
+    // Web Workers are NOT throttled, so we use one for timing.
+    const timerWorkerCode = `
+        self.onmessage = function(e) {
+            setTimeout(function() {
+                self.postMessage({ id: e.data.id });
+            }, e.data.ms);
+        };
+    `;
+    let timerWorker = null;
+    let timerCallbacks = new Map();
+    let timerId = 0;
+
+    function getTimerWorker() {
+        if (!timerWorker && typeof Worker !== 'undefined' && typeof Blob !== 'undefined') {
+            try {
+                const blob = new Blob([timerWorkerCode], { type: 'application/javascript' });
+                timerWorker = new Worker(URL.createObjectURL(blob));
+                timerWorker.onmessage = function (e) {
+                    const cb = timerCallbacks.get(e.data.id);
+                    if (cb) {
+                        timerCallbacks.delete(e.data.id);
+                        cb();
+                    }
+                };
+                timerWorker.onerror = function (err) {
+                    log('[Timer] Worker error, falling back to setTimeout');
+                    timerWorker = null;
+                };
+                log('[Timer] Web Worker initialized for background operation');
+            } catch (err) {
+                log('[Timer] Web Worker not available, using setTimeout fallback');
+            }
+        }
+        return timerWorker;
+    }
+
+    // Delay function that uses Web Worker (not throttled in background)
+    function workerDelay(ms) {
+        return new Promise(function (resolve) {
+            const worker = getTimerWorker();
+            if (worker) {
+                const id = ++timerId;
+                timerCallbacks.set(id, resolve);
+                worker.postMessage({ id: id, ms: ms });
+            } else {
+                // Fallback to regular setTimeout if Worker unavailable
+                setTimeout(resolve, ms);
+            }
+        });
+    }
+
     // --- 1. UTILS ---
+
     const getDocuments = (root = document) => {
         let docs = [root];
         try {
@@ -738,7 +792,7 @@
             const clicked = await performClick(['button', '[class*="button"]', '[class*="anysphere"]']);
             log(`[Loop] Cycle ${cycle}: Clicked ${clicked} buttons`);
 
-            await new Promise(r => setTimeout(r, 800));
+            await workerDelay(800);
 
             // Try multiple selectors for Cursor tabs
             const tabSelectors = [
@@ -777,7 +831,7 @@
             updateOverlay();
             log(`[Loop] Cycle ${cycle}: Overlay updated, waiting 3s...`);
 
-            await new Promise(r => setTimeout(r, 3000));
+            await workerDelay(3000);
         }
         log('[Loop] cursorLoop STOPPED');
     }
@@ -786,86 +840,66 @@
         log('[Loop] antigravityLoop STARTED');
         let index = 0;
         let cycle = 0;
+
         while (window.__autoAcceptState.isRunning && window.__autoAcceptState.sessionID === sid) {
             cycle++;
             log(`[Loop] Cycle ${cycle}: Starting...`);
 
-            // FIRST: Check for completion badges (Good/Bad) BEFORE clicking
-            const allSpans = queryAll('span');
-            const feedbackBadges = allSpans.filter(s => {
-                const t = s.textContent.trim();
-                return t === 'Good' || t === 'Bad';
-            });
-            const hasBadge = feedbackBadges.length > 0;
-
-            log(`[Loop] Cycle ${cycle}: Found ${feedbackBadges.length} Good/Bad badges`);
-
-            // Only click if there's NO completion badge (conversation is still working)
-            let clicked = 0;
-            if (!hasBadge) {
-                // Click accept/run buttons (Antigravity specific selectors)
-                clicked = await performClick(['.bg-ide-button-background']);
+            // Click accept/run buttons on current tab
+            const clicked = await performClick(['.bg-ide-button-background']);
+            if (clicked > 0) {
                 log(`[Loop] Cycle ${cycle}: Clicked ${clicked} accept buttons`);
-            } else {
-                log(`[Loop] Cycle ${cycle}: Skipping clicks - conversation is DONE (has badge)`);
             }
 
-            await new Promise(r => setTimeout(r, 800));
+            // Wait for any actions to complete
+            await workerDelay(1500);
 
-            // Optional: click New Tab button to cycle
-            const nt = queryAll("[data-tooltip-id='new-conversation-tooltip']")[0];
-            if (nt) {
-                log(`[Loop] Cycle ${cycle}: Clicking New Tab button`);
-                nt.click();
-            }
-            await new Promise(r => setTimeout(r, 1000));
+            // Get all conversation tabs
+            const tabs = queryAll('button.grow');
+            log(`[Loop] Cycle ${cycle}: Found ${tabs.length} tabs`);
+            updateTabNames(tabs);
 
-            // Re-query tabs after potential navigation
-            const tabsAfter = queryAll('button.grow');
-            log(`[Loop] Cycle ${cycle}: Found ${tabsAfter.length} tabs`);
-            updateTabNames(tabsAfter);
+            // Only cycle to next tab if there are multiple tabs
+            if (tabs.length > 1) {
+                const targetTab = tabs[index % tabs.length];
+                const tabName = stripTimeSuffix(targetTab.textContent);
 
-            // Click next tab in rotation and check its completion
-            let clickedTabName = null;
-            if (tabsAfter.length > 0) {
-                const targetTab = tabsAfter[index % tabsAfter.length];
-                clickedTabName = stripTimeSuffix(targetTab.textContent);
-                log(`[Loop] Cycle ${cycle}: Clicking tab "${clickedTabName}"`);
-                targetTab.dispatchEvent(new MouseEvent('click', { view: window, bubbles: true, cancelable: true }));
-                index++;
-            }
+                // Check if this tab is already done
+                const state = window.__autoAcceptState;
+                if (state.completionStatus[tabName] !== 'done') {
+                    log(`[Loop] Cycle ${cycle}: Switching to tab "${tabName}"`);
+                    targetTab.dispatchEvent(new MouseEvent('click', { view: window, bubbles: true, cancelable: true }));
+                    index++;
 
-            // Wait longer for content to load (1.5s instead of 0.5s)
-            await new Promise(r => setTimeout(r, 1500));
+                    // Wait for tab content to load
+                    await workerDelay(2000);
 
-            // Check for completion badges (Good/Bad) after clicking
-            const allSpansAfter = queryAll('span');
-            const feedbackTexts = allSpansAfter
-                .filter(s => {
-                    const t = s.textContent.trim();
-                    return t === 'Good' || t === 'Bad';
-                })
-                .map(s => s.textContent.trim());
+                    // Check for completion badges
+                    const badges = queryAll('span').filter(s => {
+                        const t = s.textContent.trim();
+                        return t === 'Good' || t === 'Bad';
+                    });
 
-            log(`[Loop] Cycle ${cycle}: Found ${feedbackTexts.length} Good/Bad badges`);
-
-            // Update completion status for the tab we just clicked
-            if (clickedTabName && feedbackTexts.length > 0) {
-                updateConversationCompletionState(clickedTabName, 'done');
-            } else if (clickedTabName && !window.__autoAcceptState.completionStatus[clickedTabName]) {
-                // Leave as undefined (WAITING)
+                    if (badges.length > 0) {
+                        updateConversationCompletionState(tabName, 'done');
+                        log(`[Loop] Cycle ${cycle}: Tab "${tabName}" marked as DONE`);
+                    }
+                } else {
+                    // Skip completed tab, move to next
+                    index++;
+                    log(`[Loop] Cycle ${cycle}: Skipping completed tab "${tabName}"`);
+                }
             }
 
-            const state = window.__autoAcceptState;
-            log(`[Loop] Cycle ${cycle}: State = { tabs: ${state.tabNames?.length || 0}, completions: ${JSON.stringify(state.completionStatus)} }`);
-
+            // Update overlay
             updateOverlay();
-            log(`[Loop] Cycle ${cycle}: Overlay updated, waiting 3s...`);
 
-            await new Promise(r => setTimeout(r, 3000));
+            // Wait before next cycle (5 seconds instead of 3 for less aggressive polling)
+            await workerDelay(5000);
         }
         log('[Loop] antigravityLoop STOPPED');
     }
+
 
     // --- 5. LIFECYCLE API ---
     // --- Update banned commands list ---
@@ -952,14 +986,14 @@
             log(`Agent Loaded (IDE: ${ide}, BG: ${isBG}, isPro: ${isPro})`, true);
 
             if (isBG && isPro) {
-                log(`[BG] Creating overlay and starting loop...`);
-                showOverlay();
-                log(`[BG] Overlay created, starting ${ide} loop...`);
+                log(`[BG] Starting background loop (no overlay)...`);
+                // showOverlay(); // DISABLED: Overlay blocks user interaction
+                log(`[BG] Starting ${ide} loop...`);
                 if (ide === 'cursor') cursorLoop(sid);
                 else antigravityLoop(sid);
             } else if (isBG && !isPro) {
-                log(`[BG] Background mode requires Pro, showing overlay anyway...`);
-                showOverlay();
+                log(`[BG] Background mode without Pro...`);
+                // showOverlay(); // DISABLED: Overlay blocks user interaction
                 if (ide === 'cursor') cursorLoop(sid);
                 else antigravityLoop(sid);
             } else {
@@ -968,7 +1002,7 @@
                 (async function staticLoop() {
                     while (state.isRunning && state.sessionID === sid) {
                         performClick(['button', '[class*="button"]', '[class*="anysphere"]']);
-                        await new Promise(r => setTimeout(r, config.pollInterval || 1000));
+                        await workerDelay(config.pollInterval || 1000);
                     }
                 })();
             }
