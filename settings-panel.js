@@ -196,25 +196,28 @@ class SettingsPanel {
         const isPro = this.isPro();
         const isPrompt = this.mode === 'prompt';
 
-        // Premium Design System - Shadcn-inspired with glassmorphism
+        // Premium Design System - Shadcn-inspired BRIGHT theme
         const css = `
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
             
             :root {
-                --bg: #09090b;
-                --bg-gradient: linear-gradient(135deg, #09090b 0%, #18181b 50%, #09090b 100%);
-                --card-bg: rgba(24, 24, 27, 0.8);
-                --card-glass: rgba(255, 255, 255, 0.03);
-                --border: rgba(147, 51, 234, 0.15);
-                --border-hover: rgba(147, 51, 234, 0.5);
-                --accent: #a855f7;
-                --accent-glow: rgba(168, 85, 247, 0.4);
-                --accent-soft: rgba(168, 85, 247, 0.1);
-                --green: #22c55e;
-                --green-glow: rgba(34, 197, 94, 0.4);
-                --cyan: #06b6d4;
-                --fg: #fafafa;
-                --fg-dim: rgba(250, 250, 250, 0.5);
+                --bg: #ffffff;
+                --bg-gradient: linear-gradient(135deg, #fafafa 0%, #f4f4f5 50%, #ffffff 100%);
+                --card-bg: #ffffff;
+                --card-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+                --card-shadow-hover: 0 10px 25px rgba(0,0,0,0.1), 0 6px 12px rgba(0,0,0,0.08);
+                --border: rgba(0, 0, 0, 0.08);
+                --border-hover: rgba(147, 51, 234, 0.4);
+                --accent: #9333ea;
+                --accent-light: #a855f7;
+                --accent-glow: rgba(147, 51, 234, 0.15);
+                --accent-soft: rgba(147, 51, 234, 0.08);
+                --green: #16a34a;
+                --green-soft: rgba(22, 163, 74, 0.08);
+                --cyan: #0891b2;
+                --fg: #09090b;
+                --fg-dim: rgba(9, 9, 11, 0.6);
+                --fg-muted: rgba(9, 9, 11, 0.4);
                 --font: 'Inter', system-ui, -apple-system, sans-serif;
             }
 
@@ -234,23 +237,19 @@ class SettingsPanel {
                 position: relative;
             }
             
-            /* Subtle background glow */
+            /* Subtle background pattern */
             body::before {
                 content: '';
                 position: fixed;
-                top: -50%;
-                left: -50%;
-                width: 200%;
-                height: 200%;
-                background: radial-gradient(ellipse at center, rgba(147, 51, 234, 0.08) 0%, transparent 50%);
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: radial-gradient(ellipse at top, rgba(147, 51, 234, 0.03) 0%, transparent 50%);
                 pointer-events: none;
-                animation: bgPulse 8s ease-in-out infinite;
             }
             
-            @keyframes bgPulse {
-                0%, 100% { opacity: 0.5; transform: scale(1); }
-                50% { opacity: 1; transform: scale(1.1); }
-            }
+            @keyframes none { }
 
             .container {
                 max-width: ${isPrompt ? '500px' : '680px'};
@@ -272,10 +271,7 @@ class SettingsPanel {
                 font-weight: 800;
                 margin: 0;
                 letter-spacing: -0.5px;
-                background: linear-gradient(135deg, #ffffff 0%, #a855f7 50%, #22c55e 100%);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
+                color: var(--fg);
             }
             .subtitle {
                 color: var(--fg-dim);
@@ -284,31 +280,19 @@ class SettingsPanel {
                 font-weight: 500;
             }
 
-            /* Glassmorphism Sections */
+            /* Card Sections */
             .section {
                 background: var(--card-bg);
-                backdrop-filter: blur(20px);
-                -webkit-backdrop-filter: blur(20px);
                 border: 1px solid var(--border);
-                border-radius: 16px;
+                border-radius: 12px;
                 padding: 24px;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                position: relative;
-                overflow: hidden;
-            }
-            .section::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                height: 1px;
-                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+                box-shadow: var(--card-shadow);
+                transition: all 0.2s ease;
             }
             .section:hover {
                 border-color: var(--border-hover);
-                box-shadow: 0 0 40px rgba(147, 51, 234, 0.1);
-                transform: translateY(-2px);
+                box-shadow: var(--card-shadow-hover);
+                transform: translateY(-1px);
             }
             .section-label {
                 color: var(--accent);
@@ -326,40 +310,24 @@ class SettingsPanel {
                 font-weight: 500;
             }
 
-            /* Impact Grid - Enhanced */
+            /* Impact Grid */
             .impact-grid {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
                 gap: 12px;
             }
             .impact-card {
-                background: linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 100%);
-                border: 1px solid rgba(255, 255, 255, 0.05);
-                border-radius: 12px;
+                background: #fafafa;
+                border: 1px solid var(--border);
+                border-radius: 10px;
                 padding: 20px 16px;
                 text-align: center;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                position: relative;
-                overflow: hidden;
+                transition: all 0.2s ease;
             }
-            .impact-card::after {
-                content: '';
-                position: absolute;
-                bottom: 0;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 40%;
-                height: 2px;
-                border-radius: 2px;
-            }
-            .impact-card:first-child::after { background: var(--green); box-shadow: 0 0 20px var(--green-glow); }
-            .impact-card:nth-child(2)::after { background: var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
-            .impact-card:nth-child(3)::after { background: var(--cyan); }
-            .impact-card:nth-child(4)::after { background: rgba(255,255,255,0.3); }
             .impact-card:hover {
-                transform: translateY(-4px) scale(1.02);
-                border-color: rgba(255, 255, 255, 0.1);
-                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                border-color: var(--border-hover);
+                box-shadow: 0 4px 12px rgba(147, 51, 234, 0.1);
+                transform: translateY(-2px);
             }
             .stat-val {
                 font-size: 32px;
@@ -376,47 +344,42 @@ class SettingsPanel {
                 letter-spacing: 1px;
             }
 
-            /* Inputs and Buttons - Enhanced */
+            /* Inputs and Buttons */
             input[type="range"] {
                 width: 100%;
                 height: 6px;
                 border-radius: 3px;
-                background: rgba(255,255,255,0.1);
+                background: #e4e4e7;
                 -webkit-appearance: none;
                 appearance: none;
             }
             input[type="range"]::-webkit-slider-thumb {
                 -webkit-appearance: none;
-                width: 18px;
-                height: 18px;
+                width: 16px;
+                height: 16px;
                 border-radius: 50%;
                 background: var(--accent);
                 cursor: pointer;
-                box-shadow: 0 0 15px var(--accent-glow);
-                transition: all 0.2s ease;
-            }
-            input[type="range"]::-webkit-slider-thumb:hover {
-                transform: scale(1.2);
-                box-shadow: 0 0 25px var(--accent-glow);
+                box-shadow: 0 2px 6px rgba(147, 51, 234, 0.3);
             }
             
             textarea {
                 width: 100%;
                 min-height: 120px;
-                background: rgba(0,0,0,0.4);
+                background: #fafafa;
                 border: 1px solid var(--border);
-                border-radius: 12px;
+                border-radius: 8px;
                 color: var(--fg);
                 font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
                 font-size: 12px;
-                padding: 16px;
+                padding: 12px;
                 resize: vertical;
                 outline: none;
-                transition: all 0.3s ease;
+                transition: all 0.2s ease;
             }
             textarea:focus { 
                 border-color: var(--accent); 
-                box-shadow: 0 0 20px rgba(147, 51, 234, 0.15);
+                box-shadow: 0 0 0 3px var(--accent-glow);
             }
 
             .btn-primary {
