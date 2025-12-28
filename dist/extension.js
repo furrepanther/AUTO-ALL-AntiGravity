@@ -519,8 +519,14 @@ var require_settings_panel = __commonJS({
                     <div id="bannedStatus" style="font-size: 12px; margin-top: 12px; text-align: center; height: 18px;"></div>
                 </div>
 
-                <div style="text-align: center; opacity: 0.3; font-size: 10px; padding: 20px 0; letter-spacing: 0.5px;">
-                    Inspired by the open-source community
+                <div style="text-align: center; padding: 24px 0; border-top: 1px solid var(--border); margin-top: 8px;">
+                    <div style="display: flex; justify-content: center; gap: 24px; margin-bottom: 16px;">
+                        <a href="https://github.com/ai-dev-2024/AUTO-ALL-AntiGravity" style="color: var(--accent); text-decoration: none; font-size: 13px;">\u{1F4C2} GitHub</a>
+                        <a href="https://ko-fi.com/ai_dev_2024" style="color: var(--green); text-decoration: none; font-size: 13px;">\u2615 Support on Ko-fi</a>
+                    </div>
+                    <div style="opacity: 0.3; font-size: 10px; letter-spacing: 0.5px;">
+                        Inspired by <a href="https://github.com/Munkhin/auto-accept-agent" style="color: inherit;">auto-accept-agent</a> \u2022 Refined & Polished
+                    </div>
                 </div>
             </div>
 
