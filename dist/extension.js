@@ -9,7 +9,7 @@ var require_settings_panel = __commonJS({
     var vscode2 = require("vscode");
     var SettingsPanel2 = class _SettingsPanel {
       static currentPanel = void 0;
-      static viewType = "autoAcceptSettings";
+      static viewType = "autoAllSettings";
       static createOrShow(extensionUri, context, mode = "settings") {
         const column = vscode2.window.activeTextEditor ? vscode2.window.activeTextEditor.viewColumn : void 0;
         if (_SettingsPanel.currentPanel) {
@@ -19,7 +19,7 @@ var require_settings_panel = __commonJS({
         }
         const panel = vscode2.window.createWebviewPanel(
           _SettingsPanel.viewType,
-          mode === "prompt" ? "Auto Accept ALL" : "Auto Accept ALL Settings",
+          mode === "prompt" ? "auto-all-Antigravity" : "auto-all-Antigravity Settings",
           column || vscode2.ViewColumn.One,
           {
             enableScripts: true,
@@ -45,8 +45,8 @@ var require_settings_panel = __commonJS({
             switch (message.command) {
               case "setFrequency":
                 if (this.isPro()) {
-                  await this.context.globalState.update("auto-accept-frequency", message.value);
-                  vscode2.commands.executeCommand("auto-accept.updateFrequency", message.value);
+                  await this.context.globalState.update("auto-all-frequency", message.value);
+                  vscode2.commands.executeCommand("auto-all.updateFrequency", message.value);
                 }
                 break;
               case "getStats":
@@ -57,8 +57,8 @@ var require_settings_panel = __commonJS({
                 break;
               case "updateBannedCommands":
                 if (this.isPro()) {
-                  await this.context.globalState.update("auto-accept-banned-commands", message.commands);
-                  vscode2.commands.executeCommand("auto-accept.updateBannedCommands", message.commands);
+                  await this.context.globalState.update("auto-all-banned-commands", message.commands);
+                  vscode2.commands.executeCommand("auto-all.updateBannedCommands", message.commands);
                 }
                 break;
               case "getBannedCommands":
@@ -82,7 +82,7 @@ var require_settings_panel = __commonJS({
       }
       async handleDismiss() {
         const now = Date.now();
-        await this.context.globalState.update("auto-accept-lastDismissedAt", now);
+        await this.context.globalState.update("auto-all-lastDismissedAt", now);
         this.dispose();
       }
       async handleCheckPro() {
@@ -92,14 +92,14 @@ var require_settings_panel = __commonJS({
         return true;
       }
       getUserId() {
-        let userId = this.context.globalState.get("auto-accept-userId");
+        let userId = this.context.globalState.get("auto-all-userId");
         if (!userId) {
           userId = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
             const r = Math.random() * 16 | 0;
             const v = c === "x" ? r : r & 3 | 8;
             return v.toString(16);
           });
-          this.context.globalState.update("auto-accept-userId", userId);
+          this.context.globalState.update("auto-all-userId", userId);
         }
         return userId;
       }
@@ -107,17 +107,17 @@ var require_settings_panel = __commonJS({
       }
       updateMode(mode) {
         this.mode = mode;
-        this.panel.title = mode === "prompt" ? "Auto Accept Agent" : "Auto Accept Settings";
+        this.panel.title = mode === "prompt" ? "auto-all-Antigravity Agent" : "auto-all-Antigravity Settings";
         this.update();
       }
       sendStats() {
-        const stats = this.context.globalState.get("auto-accept-stats", {
+        const stats = this.context.globalState.get("auto-all-stats", {
           clicks: 0,
           sessions: 0,
           lastSession: null
         });
         const isPro2 = this.isPro();
-        const frequency = isPro2 ? this.context.globalState.get("auto-accept-frequency", 1e3) : 300;
+        const frequency = isPro2 ? this.context.globalState.get("auto-all-frequency", 1e3) : 300;
         this.panel.webview.postMessage({
           command: "updateStats",
           stats,
@@ -127,7 +127,7 @@ var require_settings_panel = __commonJS({
       }
       async sendROIStats() {
         try {
-          const roiStats = await vscode2.commands.executeCommand("auto-accept.getROIStats");
+          const roiStats = await vscode2.commands.executeCommand("auto-all.getROIStats");
           this.panel.webview.postMessage({
             command: "updateROIStats",
             roiStats
@@ -149,7 +149,7 @@ var require_settings_panel = __commonJS({
           "> /dev/sda",
           "chmod -R 777 /"
         ];
-        const bannedCommands2 = this.context.globalState.get("auto-accept-banned-commands", defaultBannedCommands);
+        const bannedCommands2 = this.context.globalState.get("auto-all-banned-commands", defaultBannedCommands);
         this.panel.webview.postMessage({
           command: "updateBannedCommands",
           bannedCommands: bannedCommands2
@@ -166,107 +166,104 @@ var require_settings_panel = __commonJS({
         const isPro2 = this.isPro();
         const isPrompt = this.mode === "prompt";
         const css = `
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
             
             :root {
-                --bg: #ffffff;
-                --bg-gradient: linear-gradient(135deg, #fafafa 0%, #f4f4f5 50%, #ffffff 100%);
-                --card-bg: #ffffff;
-                --card-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
-                --card-shadow-hover: 0 10px 25px rgba(0,0,0,0.1), 0 6px 12px rgba(0,0,0,0.08);
-                --border: rgba(0, 0, 0, 0.08);
-                --border-hover: rgba(147, 51, 234, 0.4);
-                --accent: #9333ea;
-                --accent-light: #a855f7;
-                --accent-glow: rgba(147, 51, 234, 0.15);
-                --accent-soft: rgba(147, 51, 234, 0.08);
-                --green: #16a34a;
-                --green-soft: rgba(22, 163, 74, 0.08);
-                --cyan: #0891b2;
-                --fg: #09090b;
-                --fg-dim: rgba(9, 9, 11, 0.6);
-                --fg-muted: rgba(9, 9, 11, 0.4);
+                --bg: #09090b;
+                --bg-card: #18181b;
+                --bg-card-hover: #27272a;
+                --border: #27272a;
+                --border-hover: #3f3f46;
+                --accent: #22c55e;
+                --accent-dim: rgba(34, 197, 94, 0.15);
+                --accent-glow: rgba(34, 197, 94, 0.3);
+                --fg: #fafafa;
+                --fg-dim: #a1a1aa;
+                --fg-muted: #71717a;
                 --font: 'Inter', system-ui, -apple-system, sans-serif;
             }
 
-            * { box-sizing: border-box; }
+            * { box-sizing: border-box; margin: 0; padding: 0; }
 
             body {
                 font-family: var(--font);
                 background: var(--bg);
-                background-image: var(--bg-gradient);
                 color: var(--fg);
                 margin: 0;
-                padding: 40px 20px;
+                padding: 32px 20px;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 min-height: 100vh;
-                position: relative;
             }
             
-            /* Subtle background pattern */
-            body::before {
-                content: '';
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: radial-gradient(ellipse at top, rgba(147, 51, 234, 0.03) 0%, transparent 50%);
-                pointer-events: none;
+            @keyframes pulse-glow {
+                0%, 100% { box-shadow: 0 0 15px var(--accent-glow); }
+                50% { box-shadow: 0 0 25px var(--accent-glow), 0 0 40px var(--accent-dim); }
             }
-            
-            @keyframes none { }
 
             .container {
-                max-width: ${isPrompt ? "500px" : "680px"};
+                max-width: ${isPrompt ? "500px" : "720px"};
                 width: 100%;
                 display: flex;
                 flex-direction: column;
-                gap: 20px;
+                gap: 24px;
                 position: relative;
                 z-index: 1;
             }
 
-            /* Header Section */
             .header {
                 text-align: center;
-                margin-bottom: 12px;
+                margin-bottom: 16px;
+                padding: 24px;
+                background: var(--bg-card);
+                border-radius: 16px;
+                border: 1px solid var(--border);
             }
             .header h1 {
                 font-size: 28px;
-                font-weight: 800;
+                font-weight: 700;
                 margin: 0;
                 letter-spacing: -0.5px;
                 color: var(--fg);
             }
             .subtitle {
                 color: var(--fg-dim);
-                font-size: 13px;
+                font-size: 14px;
                 margin-top: 8px;
-                font-weight: 500;
+                font-weight: 400;
             }
 
-            /* Card Sections */
+            .pro-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                background: var(--accent);
+                color: #000;
+                font-size: 11px;
+                font-weight: 600;
+                padding: 6px 14px;
+                border-radius: 6px;
+                margin-top: 12px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
             .section {
-                background: var(--card-bg);
+                background: var(--bg-card);
                 border: 1px solid var(--border);
                 border-radius: 12px;
                 padding: 24px;
-                box-shadow: var(--card-shadow);
-                transition: all 0.2s ease;
+                transition: border-color 0.2s;
             }
             .section:hover {
                 border-color: var(--border-hover);
-                box-shadow: var(--card-shadow-hover);
-                transform: translateY(-1px);
             }
             .section-label {
-                color: var(--accent);
-                font-size: 11px;
-                font-weight: 700;
-                letter-spacing: 1.5px;
+                color: var(--fg-dim);
+                font-size: 12px;
+                font-weight: 600;
+                letter-spacing: 0.5px;
                 text-transform: uppercase;
                 margin-bottom: 20px;
                 display: flex;
@@ -274,122 +271,132 @@ var require_settings_panel = __commonJS({
                 align-items: center;
             }
             .section-label span:last-child {
-                color: var(--fg-dim);
-                font-weight: 500;
+                color: var(--fg-muted);
+                font-weight: 400;
+                font-size: 11px;
             }
 
-            /* Impact Grid */
             .impact-grid {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
                 gap: 12px;
             }
             .impact-card {
-                background: #fafafa;
+                background: var(--bg-card);
                 border: 1px solid var(--border);
                 border-radius: 10px;
                 padding: 20px 16px;
                 text-align: center;
-                transition: all 0.2s ease;
+                transition: border-color 0.2s, background 0.2s;
             }
             .impact-card:hover {
                 border-color: var(--border-hover);
-                box-shadow: 0 4px 12px rgba(147, 51, 234, 0.1);
-                transform: translateY(-2px);
+                background: var(--bg-card-hover);
             }
+            .impact-card.green { border-left: 3px solid var(--accent); }
+            .impact-card.purple { border-left: 3px solid #a855f7; }
+            .impact-card.pink { border-bottom: 3px solid var(--pink); }
+            .impact-card.orange { border-bottom: 3px solid var(--orange); }
+            
             .stat-val {
-                font-size: 32px;
-                font-weight: 800;
+                font-size: 36px;
+                font-weight: 700;
                 line-height: 1;
                 margin-bottom: 8px;
                 font-variant-numeric: tabular-nums;
+                color: var(--fg);
             }
+            .stat-val.green { color: var(--accent); }
+            .stat-val.purple { color: #a855f7; }
+            .stat-val.pink { color: #ec4899; }
+            .stat-val.orange { color: #f97316; }
+            
             .stat-label {
-                font-size: 10px;
-                color: var(--fg-dim);
-                font-weight: 600;
+                font-size: 11px;
+                color: var(--fg-muted);
+                font-weight: 500;
                 text-transform: uppercase;
-                letter-spacing: 1px;
+                letter-spacing: 0.5px;
             }
 
-            /* Inputs and Buttons */
             input[type="range"] {
                 width: 100%;
                 height: 6px;
                 border-radius: 3px;
-                background: #e4e4e7;
+                background: var(--border);
                 -webkit-appearance: none;
                 appearance: none;
             }
             input[type="range"]::-webkit-slider-thumb {
                 -webkit-appearance: none;
-                width: 16px;
-                height: 16px;
+                width: 18px;
+                height: 18px;
                 border-radius: 50%;
                 background: var(--accent);
                 cursor: pointer;
-                box-shadow: 0 2px 6px rgba(147, 51, 234, 0.3);
+                border: 2px solid var(--bg);
+                transition: transform 0.2s ease;
+            }
+            input[type="range"]::-webkit-slider-thumb:hover {
+                transform: scale(1.1);
             }
             
             textarea {
                 width: 100%;
                 min-height: 120px;
-                background: #fafafa;
+                background: var(--bg);
                 border: 1px solid var(--border);
                 border-radius: 8px;
                 color: var(--fg);
                 font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
-                font-size: 12px;
-                padding: 12px;
+                font-size: 13px;
+                padding: 14px;
                 resize: vertical;
                 outline: none;
-                transition: all 0.2s ease;
+                transition: border-color 0.2s;
             }
             textarea:focus { 
-                border-color: var(--accent); 
-                box-shadow: 0 0 0 3px var(--accent-glow);
+                border-color: var(--accent);
             }
 
             .btn-primary {
-                background: linear-gradient(135deg, var(--accent) 0%, #7c3aed 100%);
-                color: white;
+                background: var(--accent);
+                color: #000;
                 border: none;
-                padding: 14px 24px;
-                border-radius: 10px;
+                padding: 12px 24px;
+                border-radius: 8px;
                 font-weight: 600;
                 font-size: 14px;
                 cursor: pointer;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                transition: opacity 0.2s;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 gap: 8px;
                 text-decoration: none;
-                box-shadow: 0 4px 20px rgba(147, 51, 234, 0.3);
             }
             .btn-primary:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 8px 30px rgba(147, 51, 234, 0.5);
+                opacity: 0.9;
             }
+            
             .btn-outline {
                 background: transparent;
                 border: 1px solid var(--border);
                 color: var(--fg);
-                padding: 12px 20px;
-                border-radius: 10px;
+                padding: 10px 20px;
+                border-radius: 8px;
                 font-size: 13px;
-                font-weight: 600;
+                font-weight: 500;
                 cursor: pointer;
-                transition: all 0.3s ease;
+                transition: border-color 0.2s, background 0.2s;
             }
             .btn-outline:hover {
-                background: var(--accent-soft);
-                border-color: var(--accent);
-                box-shadow: 0 0 20px rgba(147, 51, 234, 0.15);
+                background: var(--bg-card-hover);
+                border-color: var(--border-hover);
             }
 
             .link-secondary {
-                color: var(--accent);
+                color: var(--fg-dim);
                 cursor: pointer;
                 text-decoration: none;
                 font-size: 13px;
@@ -397,29 +404,24 @@ var require_settings_panel = __commonJS({
                 text-align: center;
                 margin-top: 16px;
                 font-weight: 500;
-                transition: all 0.2s ease;
+                transition: color 0.2s;
             }
             .link-secondary:hover { 
-                color: #c084fc;
+                color: var(--fg);
             }
 
             .prompt-card {
-                background: var(--card-bg);
-                backdrop-filter: blur(20px);
+                background: var(--bg-card);
                 border: 1px solid var(--border);
-                border-radius: 20px;
+                border-radius: 16px;
                 padding: 40px;
                 text-align: center;
-                box-shadow: 0 25px 50px rgba(0,0,0,0.5);
             }
             .prompt-title { 
-                font-size: 22px; 
-                font-weight: 800; 
+                font-size: 24px; 
+                font-weight: 700; 
                 margin-bottom: 12px; 
-                letter-spacing: -0.5px;
-                background: linear-gradient(135deg, #ffffff 0%, var(--green) 100%);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
+                color: var(--accent);
             }
             .prompt-text { 
                 font-size: 14px; 
@@ -427,13 +429,36 @@ var require_settings_panel = __commonJS({
                 line-height: 1.7; 
                 margin-bottom: 28px; 
             }
-            
-            /* Footer links */
-            .footer-links a {
-                transition: all 0.2s ease;
+
+            .footer {
+                background: var(--bg-card);
+                border-radius: 12px;
+                border: 1px solid var(--border);
+                padding: 20px;
+                text-align: center;
             }
-            .footer-links a:hover {
-                opacity: 0.8;
+            .footer a {
+                transition: color 0.2s;
+                text-decoration: none;
+                font-weight: 500;
+                color: var(--fg-dim);
+            }
+            .footer a:hover {
+                color: var(--fg);
+            }
+            .footer-brand {
+                color: var(--fg-muted);
+                font-size: 11px;
+                letter-spacing: 0.5px;
+                margin-top: 10px;
+            }
+            .footer-link {
+                color: var(--fg-dim);
+                text-decoration: none;
+                font-size: 13px;
+            }
+            .footer-link:hover {
+                color: var(--accent);
             }
         `;
         if (isPrompt) {
@@ -447,7 +472,7 @@ var require_settings_panel = __commonJS({
                         <div class="prompt-title">All Features Unlocked!</div>
                         <div class="prompt-text">
                             All Pro features are enabled for free.<br/><br/>
-                            <strong style="color: var(--green); opacity: 1;">Enjoy unlimited auto-accept functionality!</strong>
+                            <strong style="color: var(--green); opacity: 1;">Enjoy unlimited auto-all functionality!</strong>
                         </div>
                         <a class="btn-primary" onclick="dismiss()" style="cursor: pointer;">
                             Continue
@@ -469,33 +494,33 @@ var require_settings_panel = __commonJS({
         <body>
             <div class="container">
                 <div class="header">
-                    <h1>Auto Accept ALL</h1>
+                    <h1>auto-all-Antigravity</h1>
                     <div class="subtitle">Multi-agent automation for AntiGravity</div>
+                    <div class="pro-badge">\u2728 All Features Unlocked</div>
                 </div>
 
                 <!-- All Pro features enabled -->
 
-
                 <div class="section">
                     <div class="section-label">
                         <span>\u{1F4CA} IMPACT DASHBOARD</span>
-                        <span style="opacity: 0.4;">Resets Sunday</span>
+                        <span>Resets Sunday</span>
                     </div>
                     <div class="impact-grid">
-                        <div class="impact-card" style="border-bottom: 2px solid var(--green);">
-                            <div class="stat-val" id="roiClickCount" style="color: var(--green);">0</div>
+                        <div class="impact-card green">
+                            <div class="stat-val green" id="roiClickCount">0</div>
                             <div class="stat-label">Clicks Saved</div>
                         </div>
-                        <div class="impact-card">
-                            <div class="stat-val" id="roiTimeSaved">0m</div>
+                        <div class="impact-card purple">
+                            <div class="stat-val purple" id="roiTimeSaved">0m</div>
                             <div class="stat-label">Time Saved</div>
                         </div>
-                        <div class="impact-card">
-                            <div class="stat-val" id="roiSessionCount">0</div>
+                        <div class="impact-card pink">
+                            <div class="stat-val pink" id="roiSessionCount">0</div>
                             <div class="stat-label">Sessions</div>
                         </div>
-                        <div class="impact-card">
-                            <div class="stat-val" id="roiBlockedCount" style="opacity: 0.4;">0</div>
+                        <div class="impact-card orange">
+                            <div class="stat-val orange" id="roiBlockedCount">0</div>
                             <div class="stat-label">Blocked</div>
                         </div>
                     </div>
@@ -503,61 +528,58 @@ var require_settings_panel = __commonJS({
 
                 <div class="section" id="performanceSection">
                     <div class="section-label">
-                        <span>\u26A1 Performance Mode</span>
-                        <span class="val-display" id="freqVal" style="color: var(--accent);">...</span>
+                        <span>\u26A1 PERFORMANCE MODE</span>
+                        <span class="val-display" id="freqVal" style="color: var(--accent); font-weight: 700;">...</span>
                     </div>
                     <div>
-                        <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 8px;">
-                            <span style="font-size: 12px; opacity: 0.5;">Instant</span>
+                        <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 12px; font-weight: 600; color: var(--fg-dim);">\u26A1 Instant</span>
                             <div style="flex: 1;"><input type="range" id="freqSlider" min="200" max="3000" step="100" value="1000"></div>
-                            <span style="font-size: 12px; opacity: 0.5;">Battery Saving</span>
+                            <span style="font-size: 12px; font-weight: 600; color: var(--fg-dim);">\u{1F50B} Battery</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="section">
-                    <div class="section-label">\u{1F6E1}\uFE0F Safety Rules</div>
-                    <div style="font-size: 13px; opacity: 0.6; margin-bottom: 16px; line-height: 1.5;">
-                        Patterns that will NEVER be auto-accepted.
+                    <div class="section-label">\u{1F6E1}\uFE0F SAFETY RULES</div>
+                    <div style="font-size: 13px; color: var(--fg-dim); margin-bottom: 18px; line-height: 1.6;">
+                        Patterns that will <strong>NEVER</strong> be auto-alled.
                     </div>
                     <textarea id="bannedCommandsInput" 
                         placeholder="rm -rf /&#10;format c:&#10;del /f /s /q"></textarea>
                     
-                    <div style="display: flex; gap: 12px; margin-top: 20px;">
+                    <div style="display: flex; gap: 14px; margin-top: 22px;">
                         <button id="saveBannedBtn" class="btn-primary" style="flex: 2;">
-                            Update Rules
+                            \u{1F4BE} Update Rules
                         </button>
                         <button id="resetBannedBtn" class="btn-outline" style="flex: 1;">
-                            Reset
+                            \u21BA Reset
                         </button>
                     </div>
-                    <div id="bannedStatus" style="font-size: 12px; margin-top: 12px; text-align: center; height: 18px;"></div>
+                    <div id="bannedStatus" style="font-size: 12px; margin-top: 14px; text-align: center; height: 18px; font-weight: 600;"></div>
                 </div>
 
-                <div style="text-align: center; padding: 24px 0; border-top: 1px solid var(--border); margin-top: 8px;">
-                    <div style="display: flex; justify-content: center; gap: 24px; margin-bottom: 16px;">
-                        <a href="https://github.com/ai-dev-2024/AUTO-ALL-AntiGravity" style="color: var(--accent); text-decoration: none; font-size: 13px;">\u{1F4C2} GitHub</a>
-                        <a href="https://ko-fi.com/ai_dev_2024" style="color: var(--green); text-decoration: none; font-size: 13px;">\u2615 Support on Ko-fi</a>
+                <div class="footer">
+                    <div style="display: flex; justify-content: center; gap: 32px; margin-bottom: 14px;">
+                        <a href="https://ko-fi.com/ai_dev_2024" class="footer-link">\u2615 Support Development</a>
+                        <a href="https://github.com/ai-dev-2024/AUTO-ALL-AntiGravity" class="footer-link">GitHub</a>
                     </div>
-                    <div style="opacity: 0.3; font-size: 10px; letter-spacing: 0.5px;">
-                        Open Source \u2022 All Features Free
+                    <div class="footer-brand">
+                        Open Source \u2022 All Features Free \u2022 Made with \u2764\uFE0F
                     </div>
                 </div>
             </div>
 
             <script>
                 const vscode = acquireVsCodeApi();
-                
-                // --- Polling Logic for Real-time Refresh ---
+
                 function refreshStats() {
                     vscode.postMessage({ command: 'getStats' });
                     vscode.postMessage({ command: 'getROIStats' });
                 }
-                
-                // Refresh every 5 seconds while panel is open
+
                 const refreshInterval = setInterval(refreshStats, 5000);
-                
-                // --- Event Listeners ---
+
                 const slider = document.getElementById('freqSlider');
                 const valDisplay = document.getElementById('freqVal');
                 
@@ -596,7 +618,6 @@ var require_settings_panel = __commonJS({
                     });
                 }
 
-                // --- Fancy Count-up Animation ---
                 function animateCountUp(element, target, duration = 1200, suffix = '') {
                     const currentVal = parseInt(element.innerText.replace(/[^0-9]/g, '')) || 0;
                     if (currentVal === target && !suffix) return;
@@ -638,7 +659,6 @@ var require_settings_panel = __commonJS({
                     }
                 });
 
-                // Initial load
                 refreshStats();
                 vscode.postMessage({ command: 'getBannedCommands' });
             </script>
@@ -654,7 +674,6 @@ var require_settings_panel = __commonJS({
           if (d) d.dispose();
         }
       }
-      // License checking removed - all Pro features are free
       async checkProStatus() {
         return true;
       }
@@ -4377,10 +4396,9 @@ var require_cdp_handler = __commonJS({
         for (const [pageId] of this.connections) {
           stopPromises.push(
             this.sendCommand(pageId, "Runtime.evaluate", {
-              expression: 'if(typeof window !== "undefined" && window.__autoAcceptStop) window.__autoAcceptStop()'
+              expression: 'if(typeof window !== "undefined" && window.__autoAllStop) window.__autoAllStop()'
             }).catch(() => {
             })
-            // Ignore errors
           );
         }
         this.disconnectAll();
@@ -4436,8 +4454,8 @@ var require_cdp_handler = __commonJS({
             const res = await this.sendCommand(pageId, "Runtime.evaluate", {
               expression: `(function(){
                         const g = (typeof window !== 'undefined') ? window : (typeof globalThis !== 'undefined' ? globalThis : self);
-                        if(g && typeof g.__autoAcceptStart === 'function'){
-                            g.__autoAcceptStart(${JSON.stringify(config)});
+                        if(g && typeof g.__autoAllStart === 'function'){
+                            g.__autoAllStart(${JSON.stringify(config)});
                             return "started";
                         }
                         return "not_found";
@@ -4483,7 +4501,7 @@ var require_cdp_handler = __commonJS({
         for (const [pageId] of this.connections) {
           try {
             const result = await this.sendCommand(pageId, "Runtime.evaluate", {
-              expression: '(function(){ if(typeof window !== "undefined" && window.__autoAcceptGetStats) return JSON.stringify(window.__autoAcceptGetStats()); return "{}"; })()',
+              expression: '(function(){ if(typeof window !== "undefined" && window.__autoAllGetStats) return JSON.stringify(window.__autoAllGetStats()); return "{}"; })()',
               returnByValue: true
             });
             if (result.result?.value) {
@@ -4504,7 +4522,7 @@ var require_cdp_handler = __commonJS({
         for (const [pageId] of this.connections) {
           try {
             const result = await this.sendCommand(pageId, "Runtime.evaluate", {
-              expression: '(function(){ if(typeof window !== "undefined" && window.__autoAcceptResetStats) return JSON.stringify(window.__autoAcceptResetStats()); return "{}"; })()',
+              expression: '(function(){ if(typeof window !== "undefined" && window.__autoAllResetStats) return JSON.stringify(window.__autoAllResetStats()); return "{}"; })()',
               returnByValue: true
             });
             if (result.result?.value) {
@@ -4525,7 +4543,7 @@ var require_cdp_handler = __commonJS({
         for (const [pageId] of this.connections) {
           try {
             const result = await this.sendCommand(pageId, "Runtime.evaluate", {
-              expression: '(function(){ if(typeof window !== "undefined" && window.__autoAcceptGetSessionSummary) return JSON.stringify(window.__autoAcceptGetSessionSummary()); return "{}"; })()',
+              expression: '(function(){ if(typeof window !== "undefined" && window.__autoAllGetSessionSummary) return JSON.stringify(window.__autoAllGetSessionSummary()); return "{}"; })()',
               returnByValue: true
             });
             if (result.result?.value) {
@@ -4549,7 +4567,7 @@ var require_cdp_handler = __commonJS({
         for (const [pageId] of this.connections) {
           try {
             const result = await this.sendCommand(pageId, "Runtime.evaluate", {
-              expression: '(function(){ if(typeof window !== "undefined" && window.__autoAcceptGetAwayActions) return window.__autoAcceptGetAwayActions(); return 0; })()',
+              expression: '(function(){ if(typeof window !== "undefined" && window.__autoAllGetAwayActions) return window.__autoAllGetAwayActions(); return 0; })()',
               returnByValue: true
             });
             if (result.result?.value) {
@@ -4560,14 +4578,13 @@ var require_cdp_handler = __commonJS({
         }
         return total;
       }
-      // Push focus state from extension to browser (more reliable than browser-side detection)
       async setFocusState(isFocused) {
         for (const [pageId] of this.connections) {
           try {
             await this.sendCommand(pageId, "Runtime.evaluate", {
               expression: `(function(){ 
-                        if(typeof window !== "undefined" && window.__autoAcceptSetFocusState) {
-                            window.__autoAcceptSetFocusState(${isFocused});
+                        if(typeof window !== "undefined" && window.__autoAllSetFocusState) {
+                            window.__autoAllSetFocusState(${isFocused});
                         }
                     })()`
             });
@@ -4623,10 +4640,9 @@ var require_relauncher = __commonJS({
       logToFile(msg) {
         this.log(msg);
       }
-      // check if cdp is already running
       async isCDPRunning(port = BASE_CDP_PORT) {
         return new Promise((resolve) => {
-          const req = http.get(`http://127.0.0.1:${port}/json/version`, (res) => {
+          const req = http.get(`http://127.0.0.1:${port}/json`, (res) => {
             resolve(res.statusCode === 200);
           });
           req.on("error", () => resolve(false));
@@ -4636,8 +4652,6 @@ var require_relauncher = __commonJS({
           });
         });
       }
-      // find shortcut for this ide
-      // handles windows mac and linux
       getIDEName() {
         const appName = vscode2.env.appName || "";
         if (appName.toLowerCase().includes("cursor")) return "Cursor";
@@ -4658,11 +4672,8 @@ var require_relauncher = __commonJS({
       async _findWindowsShortcuts(ideName) {
         const shortcuts = [];
         const possiblePaths = [
-          // Start Menu (most reliable)
           path2.join(process.env.APPDATA || "", "Microsoft", "Windows", "Start Menu", "Programs", ideName, `${ideName}.lnk`),
-          // Desktop
           path2.join(process.env.USERPROFILE || "", "Desktop", `${ideName}.lnk`),
-          // Taskbar (Windows 10+)
           path2.join(process.env.APPDATA || "", "Microsoft", "Internet Explorer", "Quick Launch", "User Pinned", "TaskBar", `${ideName}.lnk`)
         ];
         for (const shortcutPath of possiblePaths) {
@@ -4738,7 +4749,6 @@ try {
           shortcuts.push({
             path: appPath,
             hasFlag: false,
-            // .app bundles don't have modifiable args
             type: "app"
           });
         }
@@ -4767,7 +4777,6 @@ try {
         this.log(`Found ${shortcuts.length} Linux .desktop files`);
         return shortcuts;
       }
-      // add flag to shortcut if absent
       async ensureShortcutHasFlag(shortcut) {
         if (shortcut.hasFlag) {
           return { success: true, modified: false, message: "Already has CDP flag" };
@@ -4867,11 +4876,8 @@ try {
           fs.mkdirSync(wrapperDir, { recursive: true });
           const appBundle = `/Applications/${ideName}.app`;
           const possibleBinaries = [
-            // Standard macOS app binary location
             path2.join(appBundle, "Contents", "MacOS", ideName),
-            // Electron app binary location (e.g., VS Code, Cursor)
             path2.join(appBundle, "Contents", "Resources", "app", "bin", ideName.toLowerCase()),
-            // Some apps use 'Electron' as the binary name
             path2.join(appBundle, "Contents", "MacOS", "Electron")
           ];
           let binaryPath = null;
@@ -4885,7 +4891,7 @@ try {
           if (!binaryPath) {
             this.log(`No direct binary found, using 'open -a' method`);
             const scriptContent = `#!/bin/bash
-# Auto Accept - ${ideName} with CDP enabled
+# auto-all-Antigravity - ${ideName} with CDP enabled
 # Generated: ${(/* @__PURE__ */ new Date()).toISOString()}
 # Uses 'open -a' for reliable app launching with arguments
 open -a "${appBundle}" --args ${CDP_FLAG} "$@"
@@ -4894,7 +4900,7 @@ open -a "${appBundle}" --args ${CDP_FLAG} "$@"
             this.log(`Created macOS wrapper (open -a method): ${wrapperPath}`);
           } else {
             const scriptContent = `#!/bin/bash
-# Auto Accept - ${ideName} with CDP enabled
+# auto-all-Antigravity - ${ideName} with CDP enabled
 # Generated: ${(/* @__PURE__ */ new Date()).toISOString()}
 "${binaryPath}" ${CDP_FLAG} "$@"
 `;
@@ -4941,13 +4947,11 @@ open -a "${appBundle}" --args ${CDP_FLAG} "$@"
           return { success: false, modified: false, message: e.message };
         }
       }
-      // get current workspace to relaunch the same workspace
       getWorkspaceFolders() {
         const folders = vscode2.workspace.workspaceFolders;
         if (!folders || folders.length === 0) return [];
         return folders.map((f) => f.uri.fsPath);
       }
-      // relaunch ide via the new shortcut
       async relaunchViaShortcut(shortcut) {
         const workspaceFolders = this.getWorkspaceFolders();
         this.log(`Relaunching via: ${shortcut.path}`);
@@ -4983,7 +4987,7 @@ open -a "${appBundle}" --args ${CDP_FLAG} "$@"
           commandLine = `start "" ${safeTarget} ${CDP_FLAG} ${folderArgs}`;
         }
         const batchContent = `@echo off
-REM Auto Accept - IDE Relaunch Script
+REM auto-all-Antigravity - IDE Relaunch Script
 timeout /t 5 /nobreak >nul
 ${commandLine}
 del "%~f0" & exit
@@ -5091,7 +5095,6 @@ exit 1
           return { success: false, error: e.message };
         }
       }
-      // main function
       async relaunchWithCDP() {
         this.log("Starting relaunchWithCDP flow...");
         const cdpAvailable = await this.isCDPRunning();
@@ -5138,15 +5141,13 @@ exit 1
           };
         }
       }
-      // legacy compatibility: wrapper for relaunch with cdp
       async launchAndReplace() {
         return await this.relaunchWithCDP();
       }
-      // prompt user for relaunch
       async showRelaunchPrompt() {
         this.log("Showing relaunch prompt");
         const choice = await vscode2.window.showInformationMessage(
-          "Auto Accept requires a quick one-time setup to enable background mode. This will restart your IDE with necessary permissions.",
+          "auto-all-Antigravity requires a quick one-time setup to enable background mode. This will restart your IDE with necessary permissions.",
           { modal: false },
           "Setup & Restart",
           "Not Now"
@@ -5161,7 +5162,6 @@ exit 1
         }
         return "cancelled";
       }
-      // legacy compatibility: wrapper for show relaunch prompt
       async showLaunchPrompt() {
         return await this.showRelaunchPrompt();
       }
@@ -5187,11 +5187,11 @@ function getSettingsPanel() {
   }
   return SettingsPanel;
 }
-var GLOBAL_STATE_KEY = "auto-accept-enabled-global";
-var PRO_STATE_KEY = "auto-accept-isPro";
-var FREQ_STATE_KEY = "auto-accept-frequency";
-var BANNED_COMMANDS_KEY = "auto-accept-banned-commands";
-var ROI_STATS_KEY = "auto-accept-roi-stats";
+var GLOBAL_STATE_KEY = "auto-all-enabled-global";
+var PRO_STATE_KEY = "auto-all-isPro";
+var FREQ_STATE_KEY = "auto-all-frequency";
+var BANNED_COMMANDS_KEY = "auto-all-banned-commands";
+var ROI_STATS_KEY = "auto-all-roi-stats";
 var SECONDS_PER_CLICK = 5;
 var INSTANCE_ID = Math.random().toString(36).substring(7);
 var isEnabled = false;
@@ -5200,9 +5200,9 @@ var isLockedOut = false;
 var pollFrequency = 2e3;
 var bannedCommands = [];
 var backgroundModeEnabled = false;
-var BACKGROUND_DONT_SHOW_KEY = "auto-accept-background-dont-show";
-var BACKGROUND_MODE_KEY = "auto-accept-background-mode";
-var VERSION_7_0_KEY = "auto-accept-version-7.0-notification-shown";
+var BACKGROUND_DONT_SHOW_KEY = "auto-all-background-dont-show";
+var BACKGROUND_MODE_KEY = "auto-all-background-mode";
+var VERSION_7_0_KEY = "auto-all-version-7.0-notification-shown";
 var pollTimer;
 var statsCollectionTimer;
 var statusBarItem;
@@ -5230,26 +5230,26 @@ function detectIDE() {
 }
 async function activate(context) {
   globalContext = context;
-  console.log("Auto Accept Extension: Activator called.");
+  console.log("auto-all-Antigravity: Activator called.");
   try {
     statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-    statusBarItem.command = "auto-accept.toggle";
-    statusBarItem.text = "$(sync~spin) Auto Accept: Loading...";
-    statusBarItem.tooltip = "Auto Accept is initializing...";
+    statusBarItem.command = "auto-all.toggle";
+    statusBarItem.text = "$(sync~spin) auto-all-Antigravity: Loading...";
+    statusBarItem.tooltip = "auto-all-Antigravity is initializing...";
     context.subscriptions.push(statusBarItem);
     statusBarItem.show();
     statusSettingsItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 98);
-    statusSettingsItem.command = "auto-accept.openSettings";
+    statusSettingsItem.command = "auto-all.openSettings";
     statusSettingsItem.text = "$(gear)";
-    statusSettingsItem.tooltip = "Auto Accept Settings & Pro Features";
+    statusSettingsItem.tooltip = "auto-all-Antigravity Settings & Pro Features";
     context.subscriptions.push(statusSettingsItem);
     statusSettingsItem.show();
     statusBackgroundItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 99);
-    statusBackgroundItem.command = "auto-accept.toggleBackground";
+    statusBackgroundItem.command = "auto-all.toggleBackground";
     statusBackgroundItem.text = "$(globe) Multi-Tab: OFF";
     statusBackgroundItem.tooltip = "Multi-Tab Mode - Auto-cycles through all conversation tabs";
     context.subscriptions.push(statusBackgroundItem);
-    console.log("Auto Accept: Status bar items created and shown.");
+    console.log("auto-all-Antigravity: Status bar items created and shown.");
   } catch (sbError) {
     console.error("CRITICAL: Failed to create status bar items:", sbError);
   }
@@ -5271,7 +5271,6 @@ async function activate(context) {
       "del /f /s /q",
       "rmdir /s /q",
       ":(){:|:&};:",
-      // fork bomb
       "dd if=",
       "mkfs.",
       "> /dev/sda",
@@ -5279,10 +5278,10 @@ async function activate(context) {
     ];
     bannedCommands = context.globalState.get(BANNED_COMMANDS_KEY, defaultBannedCommands);
     currentIDE = detectIDE();
-    outputChannel = vscode.window.createOutputChannel("Auto Accept");
+    outputChannel = vscode.window.createOutputChannel("auto-all-Antigravity");
     context.subscriptions.push(outputChannel);
-    log(`Auto Accept: Activating...`);
-    log(`Auto Accept: Detected environment: ${currentIDE.toUpperCase()}`);
+    log(`auto-all-Antigravity: Activating...`);
+    log(`auto-all-Antigravity: Detected environment: ${currentIDE.toUpperCase()}`);
     vscode.window.onDidChangeWindowState(async (e) => {
       if (cdpHandler && cdpHandler.setFocusState) {
         await cdpHandler.setFocusState(e.focused);
@@ -5300,7 +5299,7 @@ async function activate(context) {
         cdpHandler.setProStatus(isPro);
       }
       try {
-        const logPath = path.join(context.extensionPath, "auto-accept-cdp.log");
+        const logPath = path.join(context.extensionPath, "auto-all-cdp.log");
         cdpHandler.setLogFile(logPath);
         log(`CDP logging to: ${logPath}`);
       } catch (e) {
@@ -5310,18 +5309,18 @@ async function activate(context) {
       log(`CDP handlers initialized for ${currentIDE}.`);
     } catch (err) {
       log(`Failed to initialize CDP handlers: ${err.message}`);
-      vscode.window.showErrorMessage(`Auto Accept Error: ${err.message}`);
+      vscode.window.showErrorMessage(`auto-all-Antigravity Error: ${err.message}`);
     }
     updateStatusBar();
     log("Status bar updated with current state.");
     context.subscriptions.push(
-      vscode.commands.registerCommand("auto-accept.toggle", () => handleToggle(context)),
-      vscode.commands.registerCommand("auto-accept.relaunch", () => handleRelaunch()),
-      vscode.commands.registerCommand("auto-accept.updateFrequency", (freq) => handleFrequencyUpdate(context, freq)),
-      vscode.commands.registerCommand("auto-accept.toggleBackground", () => handleBackgroundToggle(context)),
-      vscode.commands.registerCommand("auto-accept.updateBannedCommands", (commands) => handleBannedCommandsUpdate(context, commands)),
-      vscode.commands.registerCommand("auto-accept.getBannedCommands", () => bannedCommands),
-      vscode.commands.registerCommand("auto-accept.getROIStats", async () => {
+      vscode.commands.registerCommand("auto-all.toggle", () => handleToggle(context)),
+      vscode.commands.registerCommand("auto-all.relaunch", () => handleRelaunch()),
+      vscode.commands.registerCommand("auto-all.updateFrequency", (freq) => handleFrequencyUpdate(context, freq)),
+      vscode.commands.registerCommand("auto-all.toggleBackground", () => handleBackgroundToggle(context)),
+      vscode.commands.registerCommand("auto-all.updateBannedCommands", (commands) => handleBannedCommandsUpdate(context, commands)),
+      vscode.commands.registerCommand("auto-all.getBannedCommands", () => bannedCommands),
+      vscode.commands.registerCommand("auto-all.getROIStats", async () => {
         const stats = await loadROIStats(context);
         const timeSavedSeconds = stats.clicksThisWeek * SECONDS_PER_CLICK;
         const timeSavedMinutes = Math.round(timeSavedSeconds / 60);
@@ -5331,7 +5330,7 @@ async function activate(context) {
           timeSavedFormatted: timeSavedMinutes >= 60 ? `${(timeSavedMinutes / 60).toFixed(1)} hours` : `${timeSavedMinutes} minutes`
         };
       }),
-      vscode.commands.registerCommand("auto-accept.openSettings", () => {
+      vscode.commands.registerCommand("auto-all.openSettings", () => {
         const panel = getSettingsPanel();
         if (panel) {
           panel.createOrShow(context.extensionUri, context);
@@ -5346,11 +5345,11 @@ async function activate(context) {
       log(`Error in environment check: ${err.message}`);
     }
     showVersionNotification(context);
-    log("Auto Accept: Activation complete");
+    log("auto-all-Antigravity: Activation complete");
   } catch (error) {
     console.error("ACTIVATION CRITICAL FAILURE:", error);
     log(`ACTIVATION CRITICAL FAILURE: ${error.message}`);
-    vscode.window.showErrorMessage(`Auto Accept Extension failed to activate: ${error.message}`);
+    vscode.window.showErrorMessage(`auto-all-Antigravity failed to activate: ${error.message}`);
   }
 }
 async function ensureCDPOrPrompt(showPrompt = false) {
@@ -5372,7 +5371,7 @@ async function ensureCDPOrPrompt(showPrompt = false) {
 }
 async function checkEnvironmentAndStart() {
   if (isEnabled) {
-    log("Initializing Auto Accept environment...");
+    log("Initializing auto-all-Antigravity environment...");
     await ensureCDPOrPrompt(false);
     await startPolling();
     startStatsCollection(globalContext);
@@ -5390,12 +5389,12 @@ async function handleToggle(context) {
     log("  Calling updateStatusBar...");
     updateStatusBar();
     if (isEnabled) {
-      log("Auto Accept: Enabled");
+      log("auto-all-Antigravity: Enabled");
       ensureCDPOrPrompt(true).then(() => startPolling());
       startStatsCollection(context);
       incrementSessionCount(context);
     } else {
-      log("Auto Accept: Disabled");
+      log("auto-all-Antigravity: Disabled");
       if (cdpHandler) {
         cdpHandler.getSessionSummary().then((summary) => showSessionSummaryNotification(context, summary)).catch(() => {
         });
@@ -5462,7 +5461,7 @@ async function handleBackgroundToggle(context) {
   const dontShowAgain = context.globalState.get(BACKGROUND_DONT_SHOW_KEY, false);
   if (!dontShowAgain && !backgroundModeEnabled) {
     const choice = await vscode.window.showInformationMessage(
-      "Turn on Multi-Tab Mode?\n\nThis lets Auto Accept work on all your open conversation tabs at once. It will switch between tabs to click Accept for you.\n\nYou might see tabs change quickly while it works.",
+      "Turn on Multi-Tab Mode?\n\nThis lets auto-all-Antigravity work on all your open conversation tabs at once. It will switch between tabs to click Accept for you.\n\nYou might see tabs change quickly while it works.",
       { modal: true },
       "Enable",
       "Don't Show Again & Enable",
@@ -5512,7 +5511,7 @@ async function syncSessions() {
 }
 async function startPolling() {
   if (pollTimer) clearInterval(pollTimer);
-  log("Auto Accept: Monitoring session...");
+  log("auto-all-Antigravity: Monitoring session...");
   await syncSessions();
   pollTimer = setInterval(async () => {
     if (!isEnabled) return;
@@ -5550,7 +5549,7 @@ async function stopPolling() {
     statsCollectionTimer = null;
   }
   if (cdpHandler) await cdpHandler.stop();
-  log("Auto Accept: Polling stopped");
+  log("auto-all-Antigravity: Polling stopped");
 }
 function getWeekStart() {
   const now = /* @__PURE__ */ new Date();
@@ -5588,7 +5587,7 @@ async function showWeeklySummaryNotification(context, lastWeekStats) {
   } else {
     timeStr = `${timeSavedMinutes} minutes`;
   }
-  const message = `\u{1F4CA} Last week, Auto Accept saved you ${timeStr} by auto-clicking ${lastWeekStats.clicksThisWeek} buttons!`;
+  const message = `\u{1F4CA} Last week, auto-all-Antigravity saved you ${timeStr} by auto-clicking ${lastWeekStats.clicksThisWeek} buttons!`;
   let detail = "";
   if (lastWeekStats.sessionsThisWeek > 0) {
     detail += `Recovered ${lastWeekStats.sessionsThisWeek} stuck sessions. `;
@@ -5617,7 +5616,7 @@ async function showSessionSummaryNotification(context, summary) {
   log(`[Notification] Showing session summary for ${summary.clicks} clicks`);
   const lines = [
     `\u2705 This session:`,
-    `\u2022 ${summary.clicks} actions auto-accepted`,
+    `\u2022 ${summary.clicks} actions auto-alled`,
     `\u2022 ${summary.terminalCommands} terminal commands`,
     `\u2022 ${summary.fileEdits} file edits`,
     `\u2022 ${summary.blocked} interruptions blocked`
@@ -5628,7 +5627,7 @@ async function showSessionSummaryNotification(context, summary) {
   }
   const message = lines.join("\n");
   vscode.window.showInformationMessage(
-    `\u{1F916} Auto Accept: ${summary.clicks} actions handled this session`,
+    `\u{1F916} auto-all-Antigravity: ${summary.clicks} actions handled this session`,
     { detail: message },
     "View Stats"
   ).then((choice) => {
@@ -5645,7 +5644,7 @@ async function showAwayActionsNotification(context, actionsCount) {
     return;
   }
   log(`[Notification] Showing away actions notification for ${actionsCount} actions`);
-  const message = `\u{1F680} Auto Accept handled ${actionsCount} action${actionsCount > 1 ? "s" : ""} while you were away.`;
+  const message = `\u{1F680} auto-all-Antigravity handled ${actionsCount} action${actionsCount > 1 ? "s" : ""} while you were away.`;
   const detail = `Agents stayed autonomous while you focused elsewhere.`;
   vscode.window.showInformationMessage(
     message,
@@ -5713,7 +5712,7 @@ function updateStatusBar() {
   if (!statusBarItem) return;
   if (isEnabled) {
     let statusText = "ON";
-    let tooltip = `Auto Accept is running.`;
+    let tooltip = `auto-all-Antigravity is running.`;
     let bgColor = void 0;
     if (cdpHandler && cdpHandler.getConnectionCount() > 0) {
       tooltip += " (CDP Connected)";
@@ -5722,7 +5721,7 @@ function updateStatusBar() {
       statusText = "PAUSED (Multi-window)";
       bgColor = new vscode.ThemeColor("statusBarItem.warningBackground");
     }
-    statusBarItem.text = `$(check) Auto Accept: ${statusText}`;
+    statusBarItem.text = `$(check) auto-all-Antigravity: ${statusText}`;
     statusBarItem.tooltip = tooltip;
     statusBarItem.backgroundColor = bgColor;
     if (statusBackgroundItem) {
@@ -5738,8 +5737,8 @@ function updateStatusBar() {
       statusBackgroundItem.show();
     }
   } else {
-    statusBarItem.text = "$(circle-slash) Auto Accept: OFF";
-    statusBarItem.tooltip = "Click to enable Auto Accept.";
+    statusBarItem.text = "$(circle-slash) auto-all-Antigravity: OFF";
+    statusBarItem.tooltip = "Click to enable auto-all-Antigravity.";
     statusBarItem.backgroundColor = new vscode.ThemeColor("statusBarItem.warningBackground");
     if (statusBackgroundItem) {
       statusBackgroundItem.hide();
@@ -5752,13 +5751,13 @@ async function showVersionNotification(context) {
   const title = "\u{1F680} Welcome to AUTO ALL AntiGravity!";
   const body = `All Pro Features Unlocked. Free Forever.
 
-\u2705 Multi-Tab Mode \u2014 Run multiple conversations in parallel, auto-accepts in all tabs.
+\u2705 Multi-Tab Mode \u2014 Run multiple conversations in parallel, auto-alls in all tabs.
 
-\u26A1 Instant Polling \u2014 Fastest possible response time for auto-accepting.
+\u26A1 Instant Polling \u2014 Fastest possible response time for auto-alling.
 
 \u{1F6E1}\uFE0F Dangerous Command Blocking \u2014 Built-in protection with customizable blocklist.
 
-\u{1F4CA} Session Insights \u2014 Track auto-accepts, time saved, and blocked commands.
+\u{1F4CA} Session Insights \u2014 Track auto-alls, time saved, and blocked commands.
 
 \u2615 Support development: ko-fi.com/ai_dev_2024`;
   const btnDashboard = "View Dashboard";
