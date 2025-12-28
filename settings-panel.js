@@ -1,7 +1,6 @@
 const vscode = require('vscode');
-const { STRIPE_LINKS } = require('./config');
 
-const LICENSE_API = 'https://auto-accept-backend.onrender.com/api';
+// All Pro features enabled - open source version
 
 class SettingsPanel {
     static currentPanel = undefined;
@@ -101,17 +100,8 @@ class SettingsPanel {
     }
 
     async handleCheckPro() {
-        const isPro = await this.checkProStatus(this.getUserId());
-        if (isPro) {
-            await this.context.globalState.update('auto-accept-isPro', true);
-            vscode.window.showInformationMessage('Auto Accept: Pro status verified!');
-            this.update();
-        } else {
-            // New: Downgrade logic if check fails (e.g. subscription cancelled)
-            await this.context.globalState.update('auto-accept-isPro', false);
-            vscode.window.showWarningMessage('Pro license not found. Standard limits applied.');
-            this.update();
-        }
+        // All Pro features are already enabled
+        vscode.window.showInformationMessage('All Pro features are already unlocked!');
     }
 
     isPro() {
@@ -205,11 +195,6 @@ class SettingsPanel {
     getHtmlContent() {
         const isPro = this.isPro();
         const isPrompt = this.mode === 'prompt';
-        const userId = this.getUserId();
-        const stripeLinks = {
-            MONTHLY: `${STRIPE_LINKS.MONTHLY}?client_reference_id=${userId}`,
-            YEARLY: `${STRIPE_LINKS.YEARLY}?client_reference_id=${userId}`
-        };
 
         // Premium Design System - Overriding IDE theme
         const css = `
@@ -435,27 +420,21 @@ class SettingsPanel {
         `;
 
         if (isPrompt) {
+            // Prompt mode now just shows all features are free
             return `<!DOCTYPE html>
             <html>
             <head><style>${css}</style></head>
             <body>
                 <div class="container">
                     <div class="prompt-card">
-                        <div style="font-size: 32px; margin-bottom: 20px;">⏸️</div>
-                        <div class="prompt-title">Workflow Paused</div>
+                        <div style="font-size: 32px; margin-bottom: 20px;">✅</div>
+                        <div class="prompt-title">All Features Unlocked!</div>
                         <div class="prompt-text">
-                            Your Antigravity agent is waiting for approval.<br/><br/>
-                            <strong style="color: var(--accent); opacity: 1;">Pro users auto-resume 94% of these interruptions.</strong>
+                            All Pro features are enabled for free.<br/><br/>
+                            <strong style="color: var(--green); opacity: 1;">Enjoy unlimited auto-accept functionality!</strong>
                         </div>
-                        <a href="${stripeLinks.MONTHLY}" class="btn-primary" style="margin-bottom: 12px;">
-                            🚀 Unlock Auto-Recovery — $5/mo
-                        </a>
-                        <a href="${stripeLinks.YEARLY}" class="btn-primary" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
-                            Annual Plan — $29/year
-                        </a>
-
-                        <a class="link-secondary" onclick="dismiss()" style="margin-top: 24px; opacity: 0.6;">
-                            Continue manually for now
+                        <a class="btn-primary" onclick="dismiss()" style="cursor: pointer;">
+                            Continue
                         </a>
                     </div>
                 </div>
@@ -547,7 +526,7 @@ class SettingsPanel {
                         <a href="https://ko-fi.com/ai_dev_2024" style="color: var(--green); text-decoration: none; font-size: 13px;">☕ Support on Ko-fi</a>
                     </div>
                     <div style="opacity: 0.3; font-size: 10px; letter-spacing: 0.5px;">
-                        Inspired by <a href="https://github.com/Munkhin/auto-accept-agent" style="color: inherit;">auto-accept-agent</a> • Refined & Polished
+                        Open Source • All Features Free
                     </div>
                 </div>
             </div>
@@ -663,47 +642,13 @@ class SettingsPanel {
         }
     }
 
-    async checkProStatus(userId) {
-        return new Promise((resolve) => {
-            const https = require('https');
-            https.get(`${LICENSE_API}/verify?userId=${userId}`, (res) => {
-                let data = '';
-                res.on('data', chunk => data += chunk);
-                res.on('end', () => {
-                    try {
-                        const json = JSON.parse(data);
-                        resolve(json.isPro === true);
-                    } catch (e) {
-                        resolve(false);
-                    }
-                });
-            }).on('error', () => resolve(false));
-        });
+    // License checking removed - all Pro features are free
+    async checkProStatus() {
+        return true; // Always Pro
     }
 
-    startPolling(userId) {
-        // Poll every 5s for 5 minutes
-        let attempts = 0;
-        const maxAttempts = 60;
-
-        if (this.pollTimer) clearInterval(this.pollTimer);
-
-        this.pollTimer = setInterval(async () => {
-            attempts++;
-            if (attempts > maxAttempts) {
-                clearInterval(this.pollTimer);
-                return;
-            }
-
-            const isPro = await this.checkProStatus(userId);
-            if (isPro) {
-                clearInterval(this.pollTimer);
-                await this.context.globalState.update('auto-accept-isPro', true);
-                vscode.window.showInformationMessage('Auto Accept: Pro status verified! Thank you for your support.');
-                this.update(); // Refresh UI
-                vscode.commands.executeCommand('auto-accept.updateFrequency', 1000);
-            }
-        }, 5000);
+    startPolling() {
+        // No license polling needed
     }
 }
 

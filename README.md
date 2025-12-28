@@ -13,7 +13,7 @@
 
 Stop watching tabs. Auto Accept ALL keeps every Antigravity conversation moving — accepting file edits, terminal commands, and recovery prompts automatically.
 
-**✨ All Pro features unlocked. Free forever.**
+**✨ All features unlocked. Free forever.**
 
 ---
 
@@ -92,12 +92,7 @@ MIT — Open source software. Fork it, modify it, make it yours.
 
 ---
 
-## Acknowledgements
-
-This project is inspired by the original [auto-accept-agent](https://github.com/Munkhin/auto-accept-agent). Built with refinements and improvements for a more polished experience. Thank you to the open-source community for making this possible!
-
----
-
 <p align="center">
-  Made with ❤️ for the AI development community
+  Made with ❤️ for the AI development community<br/>
+  Open Source • All Features Free
 </p>

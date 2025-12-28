@@ -22,7 +22,7 @@ const FREQ_STATE_KEY = 'auto-accept-frequency';
 const BANNED_COMMANDS_KEY = 'auto-accept-banned-commands';
 const ROI_STATS_KEY = 'auto-accept-roi-stats'; // For ROI notification
 const SECONDS_PER_CLICK = 5; // Conservative estimate: 5 seconds saved per auto-accept
-const LICENSE_API = 'https://auto-accept-backend.onrender.com/api';
+// All Pro features enabled - open source version
 // Locking
 const LOCK_KEY = 'auto-accept-instance-lock';
 const HEARTBEAT_KEY = 'auto-accept-instance-heartbeat';
@@ -135,29 +135,6 @@ async function activate(context) {
         ];
         bannedCommands = context.globalState.get(BANNED_COMMANDS_KEY, defaultBannedCommands);
 
-
-        // 1.5 Verify License Background Check
-        // DISABLED: License verification was overriding isPro = true
-        // verifyLicense(context).then(isValid => {
-        //     if (isPro !== isValid) {
-        //         isPro = isValid;
-        //         context.globalState.update(PRO_STATE_KEY, isValid);
-        //         log(`License re-verification: Updated Pro status to ${isValid}`);
-        //
-        //         if (cdpHandler && cdpHandler.setProStatus) {
-        //             cdpHandler.setProStatus(isValid);
-        //         }
-        //
-        //         if (!isValid) {
-        //             pollFrequency = 300; // Downgrade speed
-        //             if (backgroundModeEnabled) {
-        //                 // Optional: Disable background mode visual toggle if desired, 
-        //                 // but logic gate handles it.
-        //             }
-        //         }
-        //         updateStatusBar();
-        //     }
-        // });
 
         currentIDE = detectIDE();
 
@@ -822,26 +799,7 @@ async function checkInstanceLock() {
     return false;
 }
 
-async function verifyLicense(context) {
-    const userId = context.globalState.get('auto-accept-userId');
-    if (!userId) return false;
-
-    return new Promise((resolve) => {
-        const https = require('https');
-        https.get(`${LICENSE_API}/check-license?userId=${userId}`, (res) => {
-            let data = '';
-            res.on('data', chunk => data += chunk);
-            res.on('end', () => {
-                try {
-                    const json = JSON.parse(data);
-                    resolve(json.isPro === true);
-                } catch (e) {
-                    resolve(false);
-                }
-            });
-        }).on('error', () => resolve(false));
-    });
-}
+// License verification removed - all Pro features are free
 
 async function showVersionNotification(context) {
     const hasShown = context.globalState.get(VERSION_7_0_KEY, false);

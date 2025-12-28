@@ -3,24 +3,10 @@ var __commonJS = (cb, mod) => function __require() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
 
-// config.js
-var require_config = __commonJS({
-  "config.js"(exports2, module2) {
-    module2.exports = {
-      STRIPE_LINKS: {
-        MONTHLY: "https://buy.stripe.com/7sY00j3eN0Pt9f94549MY0v",
-        YEARLY: "https://buy.stripe.com/3cI3cv5mVaq3crlfNM9MY0u"
-      }
-    };
-  }
-});
-
 // settings-panel.js
 var require_settings_panel = __commonJS({
   "settings-panel.js"(exports2, module2) {
     var vscode2 = require("vscode");
-    var { STRIPE_LINKS } = require_config();
-    var LICENSE_API = "https://auto-accept-backend.onrender.com/api";
     var SettingsPanel2 = class _SettingsPanel {
       static currentPanel = void 0;
       static viewType = "autoAcceptSettings";
@@ -100,16 +86,7 @@ var require_settings_panel = __commonJS({
         this.dispose();
       }
       async handleCheckPro() {
-        const isPro2 = await this.checkProStatus(this.getUserId());
-        if (isPro2) {
-          await this.context.globalState.update("auto-accept-isPro", true);
-          vscode2.window.showInformationMessage("Auto Accept: Pro status verified!");
-          this.update();
-        } else {
-          await this.context.globalState.update("auto-accept-isPro", false);
-          vscode2.window.showWarningMessage("Pro license not found. Standard limits applied.");
-          this.update();
-        }
+        vscode2.window.showInformationMessage("All Pro features are already unlocked!");
       }
       isPro() {
         return true;
@@ -188,11 +165,6 @@ var require_settings_panel = __commonJS({
       getHtmlContent() {
         const isPro2 = this.isPro();
         const isPrompt = this.mode === "prompt";
-        const userId = this.getUserId();
-        const stripeLinks = {
-          MONTHLY: `${STRIPE_LINKS.MONTHLY}?client_reference_id=${userId}`,
-          YEARLY: `${STRIPE_LINKS.YEARLY}?client_reference_id=${userId}`
-        };
         const css = `
             :root {
                 --bg: #0a0a0c;
@@ -421,21 +393,14 @@ var require_settings_panel = __commonJS({
             <body>
                 <div class="container">
                     <div class="prompt-card">
-                        <div style="font-size: 32px; margin-bottom: 20px;">\u23F8\uFE0F</div>
-                        <div class="prompt-title">Workflow Paused</div>
+                        <div style="font-size: 32px; margin-bottom: 20px;">\u2705</div>
+                        <div class="prompt-title">All Features Unlocked!</div>
                         <div class="prompt-text">
-                            Your Antigravity agent is waiting for approval.<br/><br/>
-                            <strong style="color: var(--accent); opacity: 1;">Pro users auto-resume 94% of these interruptions.</strong>
+                            All Pro features are enabled for free.<br/><br/>
+                            <strong style="color: var(--green); opacity: 1;">Enjoy unlimited auto-accept functionality!</strong>
                         </div>
-                        <a href="${stripeLinks.MONTHLY}" class="btn-primary" style="margin-bottom: 12px;">
-                            \u{1F680} Unlock Auto-Recovery \u2014 $5/mo
-                        </a>
-                        <a href="${stripeLinks.YEARLY}" class="btn-primary" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
-                            Annual Plan \u2014 $29/year
-                        </a>
-
-                        <a class="link-secondary" onclick="dismiss()" style="margin-top: 24px; opacity: 0.6;">
-                            Continue manually for now
+                        <a class="btn-primary" onclick="dismiss()" style="cursor: pointer;">
+                            Continue
                         </a>
                     </div>
                 </div>
@@ -525,7 +490,7 @@ var require_settings_panel = __commonJS({
                         <a href="https://ko-fi.com/ai_dev_2024" style="color: var(--green); text-decoration: none; font-size: 13px;">\u2615 Support on Ko-fi</a>
                     </div>
                     <div style="opacity: 0.3; font-size: 10px; letter-spacing: 0.5px;">
-                        Inspired by <a href="https://github.com/Munkhin/auto-accept-agent" style="color: inherit;">auto-accept-agent</a> \u2022 Refined & Polished
+                        Open Source \u2022 All Features Free
                     </div>
                 </div>
             </div>
@@ -639,42 +604,11 @@ var require_settings_panel = __commonJS({
           if (d) d.dispose();
         }
       }
-      async checkProStatus(userId) {
-        return new Promise((resolve) => {
-          const https = require("https");
-          https.get(`${LICENSE_API}/verify?userId=${userId}`, (res) => {
-            let data = "";
-            res.on("data", (chunk) => data += chunk);
-            res.on("end", () => {
-              try {
-                const json = JSON.parse(data);
-                resolve(json.isPro === true);
-              } catch (e) {
-                resolve(false);
-              }
-            });
-          }).on("error", () => resolve(false));
-        });
+      // License checking removed - all Pro features are free
+      async checkProStatus() {
+        return true;
       }
-      startPolling(userId) {
-        let attempts = 0;
-        const maxAttempts = 60;
-        if (this.pollTimer) clearInterval(this.pollTimer);
-        this.pollTimer = setInterval(async () => {
-          attempts++;
-          if (attempts > maxAttempts) {
-            clearInterval(this.pollTimer);
-            return;
-          }
-          const isPro2 = await this.checkProStatus(userId);
-          if (isPro2) {
-            clearInterval(this.pollTimer);
-            await this.context.globalState.update("auto-accept-isPro", true);
-            vscode2.window.showInformationMessage("Auto Accept: Pro status verified! Thank you for your support.");
-            this.update();
-            vscode2.commands.executeCommand("auto-accept.updateFrequency", 1e3);
-          }
-        }, 5e3);
+      startPolling() {
       }
     };
     module2.exports = { SettingsPanel: SettingsPanel2 };
