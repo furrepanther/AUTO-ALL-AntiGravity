@@ -2,7 +2,7 @@
     "name": "auto-all-antigravity",
     "displayName": "auto-all-Antigravity",
     "description": "Unleash fully autonomous AI agents. Auto-accept file edits, terminal commands, and recovery prompts with zero interruptions.",
-    "version": "1.0.6",
+    "version": "1.0.4",
     "publisher": "auto-all-antigravity",
     "icon": "media/icon.png",
     "repository": {
