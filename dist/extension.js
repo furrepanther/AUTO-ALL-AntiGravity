@@ -5206,8 +5206,6 @@ var VERSION_7_0_KEY = "auto-all-version-7.0-notification-shown";
 var pollTimer;
 var statsCollectionTimer;
 var statusBarItem;
-var statusSettingsItem;
-var statusBackgroundItem;
 var outputChannel;
 var currentIDE = "unknown";
 var globalContext;
@@ -5233,22 +5231,11 @@ async function activate(context) {
   console.log("auto-all-Antigravity: Activator called.");
   try {
     statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-    statusBarItem.command = "auto-all.toggle";
-    statusBarItem.text = "$(sync~spin) auto-all-Antigravity: Loading...";
-    statusBarItem.tooltip = "auto-all-Antigravity is initializing...";
+    statusBarItem.command = "auto-all.cycleState";
+    statusBarItem.text = "$(sync~spin)";
+    statusBarItem.tooltip = "auto-all-Antigravity: Loading...";
     context.subscriptions.push(statusBarItem);
     statusBarItem.show();
-    statusSettingsItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 98);
-    statusSettingsItem.command = "auto-all.openSettings";
-    statusSettingsItem.text = "$(gear)";
-    statusSettingsItem.tooltip = "auto-all-Antigravity Settings & Pro Features";
-    context.subscriptions.push(statusSettingsItem);
-    statusSettingsItem.show();
-    statusBackgroundItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 99);
-    statusBackgroundItem.command = "auto-all.toggleBackground";
-    statusBackgroundItem.text = "$(globe) Multi-Tab: OFF";
-    statusBackgroundItem.tooltip = "Multi-Tab Mode - Auto-cycles through all conversation tabs";
-    context.subscriptions.push(statusBackgroundItem);
     console.log("auto-all-Antigravity: Status bar items created and shown.");
   } catch (sbError) {
     console.error("CRITICAL: Failed to create status bar items:", sbError);
@@ -5315,6 +5302,7 @@ async function activate(context) {
     log("Status bar updated with current state.");
     context.subscriptions.push(
       vscode.commands.registerCommand("auto-all.toggle", () => handleToggle(context)),
+      vscode.commands.registerCommand("auto-all.cycleState", () => handleCycleState(context)),
       vscode.commands.registerCommand("auto-all.relaunch", () => handleRelaunch()),
       vscode.commands.registerCommand("auto-all.updateFrequency", (freq) => handleFrequencyUpdate(context, freq)),
       vscode.commands.registerCommand("auto-all.toggleBackground", () => handleBackgroundToggle(context)),
@@ -5492,6 +5480,46 @@ async function handleBackgroundToggle(context) {
     syncSessions().catch(() => {
     });
   }
+}
+async function handleCycleState(context) {
+  log("=== handleCycleState CALLED ===");
+  log(`  Current state: isEnabled=${isEnabled}, backgroundModeEnabled=${backgroundModeEnabled}`);
+  if (!isEnabled) {
+    isEnabled = true;
+    backgroundModeEnabled = false;
+    await context.globalState.update(GLOBAL_STATE_KEY, true);
+    await context.globalState.update(BACKGROUND_MODE_KEY, false);
+    log("  Cycled to: ON + Single Tab");
+    ensureCDPOrPrompt(true).then(() => startPolling());
+    startStatsCollection(context);
+    incrementSessionCount(context);
+  } else if (!backgroundModeEnabled) {
+    backgroundModeEnabled = true;
+    await context.globalState.update(BACKGROUND_MODE_KEY, true);
+    log("  Cycled to: ON + Multi-Tab");
+    if (isEnabled) {
+      syncSessions().catch(() => {
+      });
+    }
+  } else {
+    isEnabled = false;
+    backgroundModeEnabled = false;
+    await context.globalState.update(GLOBAL_STATE_KEY, false);
+    await context.globalState.update(BACKGROUND_MODE_KEY, false);
+    log("  Cycled to: OFF");
+    if (cdpHandler) {
+      cdpHandler.getSessionSummary().then((summary) => showSessionSummaryNotification(context, summary)).catch(() => {
+      });
+      cdpHandler.hideBackgroundOverlay().catch(() => {
+      });
+    }
+    collectAndSaveStats(context).catch(() => {
+    });
+    stopPolling().catch(() => {
+    });
+  }
+  updateStatusBar();
+  log("=== handleCycleState COMPLETE ===");
 }
 async function syncSessions() {
   if (cdpHandler && !isLockedOut) {
@@ -5710,39 +5738,27 @@ function startStatsCollection(context) {
 }
 function updateStatusBar() {
   if (!statusBarItem) return;
-  if (isEnabled) {
-    let statusText = "ON";
-    let tooltip = `auto-all-Antigravity is running.`;
-    let bgColor = void 0;
-    if (cdpHandler && cdpHandler.getConnectionCount() > 0) {
-      tooltip += " (CDP Connected)";
-    }
-    if (isLockedOut) {
-      statusText = "PAUSED (Multi-window)";
-      bgColor = new vscode.ThemeColor("statusBarItem.warningBackground");
-    }
-    statusBarItem.text = `$(check) auto-all-Antigravity: ${statusText}`;
-    statusBarItem.tooltip = tooltip;
-    statusBarItem.backgroundColor = bgColor;
-    if (statusBackgroundItem) {
-      if (backgroundModeEnabled) {
-        statusBackgroundItem.text = "$(check-all) Multi-Tab: ON";
-        statusBackgroundItem.tooltip = "Multi-Tab Mode is on. Click to turn off.";
-        statusBackgroundItem.backgroundColor = void 0;
-      } else {
-        statusBackgroundItem.text = "$(globe) Multi-Tab: OFF";
-        statusBackgroundItem.tooltip = "Click to enable Multi-Tab Mode (auto-cycles through all conversation tabs).";
-        statusBackgroundItem.backgroundColor = void 0;
-      }
-      statusBackgroundItem.show();
-    }
+  const createTooltip = (state, action) => {
+    const md = new vscode.MarkdownString();
+    md.isTrusted = true;
+    md.appendMarkdown(`**auto-all-Antigravity:** ${state}
+
+`);
+    md.appendMarkdown(`\u2192 ${action}
+
+`);
+    md.appendMarkdown(`[\u2699\uFE0F Open Settings](command:auto-all.openSettings)`);
+    return md;
+  };
+  if (!isEnabled) {
+    statusBarItem.text = "$(zap) OFF";
+    statusBarItem.tooltip = createTooltip("OFF", "Click to enable (Single Tab)");
+  } else if (!backgroundModeEnabled) {
+    statusBarItem.text = "\u26A1 ON";
+    statusBarItem.tooltip = createTooltip("ON (Single Tab)", "Click for Multi-Tab mode");
   } else {
-    statusBarItem.text = "$(circle-slash) auto-all-Antigravity: OFF";
-    statusBarItem.tooltip = "Click to enable auto-all-Antigravity.";
-    statusBarItem.backgroundColor = new vscode.ThemeColor("statusBarItem.warningBackground");
-    if (statusBackgroundItem) {
-      statusBackgroundItem.hide();
-    }
+    statusBarItem.text = "\u26A1 Multi";
+    statusBarItem.tooltip = createTooltip("ON (Multi-Tab)", "Click to disable");
   }
 }
 async function showVersionNotification(context) {

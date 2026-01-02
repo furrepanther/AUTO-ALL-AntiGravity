@@ -17,8 +17,8 @@ const GLOBAL_STATE_KEY = 'auto-all-enabled-global';
 const PRO_STATE_KEY = 'auto-all-isPro';
 const FREQ_STATE_KEY = 'auto-all-frequency';
 const BANNED_COMMANDS_KEY = 'auto-all-banned-commands';
-const ROI_STATS_KEY = 'auto-all-roi-stats'; 
-const SECONDS_PER_CLICK = 5; 
+const ROI_STATS_KEY = 'auto-all-roi-stats';
+const SECONDS_PER_CLICK = 5;
 
 const LOCK_KEY = 'auto-all-instance-lock';
 const HEARTBEAT_KEY = 'auto-all-instance-heartbeat';
@@ -26,9 +26,9 @@ const INSTANCE_ID = Math.random().toString(36).substring(7);
 
 let isEnabled = false;
 let isPro = false;
-let isLockedOut = false; 
-let pollFrequency = 2000; 
-let bannedCommands = []; 
+let isLockedOut = false;
+let pollFrequency = 2000;
+let bannedCommands = [];
 
 let backgroundModeEnabled = false;
 const BACKGROUND_DONT_SHOW_KEY = 'auto-all-background-dont-show';
@@ -36,12 +36,10 @@ const BACKGROUND_MODE_KEY = 'auto-all-background-mode';
 const VERSION_7_0_KEY = 'auto-all-version-7.0-notification-shown';
 
 let pollTimer;
-let statsCollectionTimer; 
+let statsCollectionTimer;
 let statusBarItem;
-let statusSettingsItem;
-let statusBackgroundItem; 
 let outputChannel;
-let currentIDE = 'unknown'; 
+let currentIDE = 'unknown';
 let globalContext;
 
 let cdpHandler;
@@ -61,7 +59,7 @@ function detectIDE() {
     const appName = vscode.env.appName || '';
     if (appName.toLowerCase().includes('cursor')) return 'Cursor';
     if (appName.toLowerCase().includes('antigravity')) return 'Antigravity';
-    return 'Code'; 
+    return 'Code';
 }
 
 async function activate(context) {
@@ -70,24 +68,11 @@ async function activate(context) {
 
     try {
         statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-        statusBarItem.command = 'auto-all.toggle';
-        statusBarItem.text = '$(sync~spin) auto-all-Antigravity: Loading...';
-        statusBarItem.tooltip = 'auto-all-Antigravity is initializing...';
+        statusBarItem.command = 'auto-all.cycleState';
+        statusBarItem.text = '$(sync~spin)';
+        statusBarItem.tooltip = 'auto-all-Antigravity: Loading...';
         context.subscriptions.push(statusBarItem);
         statusBarItem.show();
-
-        statusSettingsItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 98);
-        statusSettingsItem.command = 'auto-all.openSettings';
-        statusSettingsItem.text = '$(gear)';
-        statusSettingsItem.tooltip = 'auto-all-Antigravity Settings & Pro Features';
-        context.subscriptions.push(statusSettingsItem);
-        statusSettingsItem.show();
-
-        statusBackgroundItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 99);
-        statusBackgroundItem.command = 'auto-all.toggleBackground';
-        statusBackgroundItem.text = '$(globe) Multi-Tab: OFF';
-        statusBackgroundItem.tooltip = 'Multi-Tab Mode - Auto-cycles through all conversation tabs';
-        context.subscriptions.push(statusBackgroundItem);
 
         console.log('auto-all-Antigravity: Status bar items created and shown.');
     } catch (sbError) {
@@ -95,15 +80,15 @@ async function activate(context) {
     }
 
     try {
-        
+
         isEnabled = context.globalState.get(GLOBAL_STATE_KEY, false);
         isPro = context.globalState.get(PRO_STATE_KEY, false);
-        isPro = true; 
+        isPro = true;
 
         if (isPro) {
             pollFrequency = context.globalState.get(FREQ_STATE_KEY, 1000);
         } else {
-            pollFrequency = 300; 
+            pollFrequency = 300;
         }
 
         backgroundModeEnabled = context.globalState.get(BACKGROUND_MODE_KEY, false);
@@ -115,7 +100,7 @@ async function activate(context) {
             'format c:',
             'del /f /s /q',
             'rmdir /s /q',
-            ':(){:|:&};:',  
+            ':(){:|:&};:',
             'dd if=',
             'mkfs.',
             '> /dev/sda',
@@ -132,14 +117,14 @@ async function activate(context) {
         log(`auto-all-Antigravity: Detected environment: ${currentIDE.toUpperCase()}`);
 
         vscode.window.onDidChangeWindowState(async (e) => {
-            
+
             if (cdpHandler && cdpHandler.setFocusState) {
                 await cdpHandler.setFocusState(e.focused);
             }
 
             if (e.focused && isEnabled) {
                 log(`[Away] Window focus detected by VS Code API. Checking for away actions...`);
-                
+
                 setTimeout(() => checkForAwayActions(context), 500);
             }
         });
@@ -173,6 +158,7 @@ async function activate(context) {
 
         context.subscriptions.push(
             vscode.commands.registerCommand('auto-all.toggle', () => handleToggle(context)),
+            vscode.commands.registerCommand('auto-all.cycleState', () => handleCycleState(context)),
             vscode.commands.registerCommand('auto-all.relaunch', () => handleRelaunch()),
             vscode.commands.registerCommand('auto-all.updateFrequency', (freq) => handleFrequencyUpdate(context, freq)),
             vscode.commands.registerCommand('auto-all.toggleBackground', () => handleBackgroundToggle(context)),
@@ -227,7 +213,7 @@ async function ensureCDPOrPrompt(showPrompt = false) {
         log('CDP is active and available.');
     } else {
         log('CDP not found on expected ports (9000-9030).');
-        
+
         if (showPrompt && relauncher) {
             log('Prompting user for relaunch...');
             await relauncher.showRelaunchPrompt();
@@ -242,7 +228,7 @@ async function checkEnvironmentAndStart() {
         log('Initializing auto-all-Antigravity environment...');
         await ensureCDPOrPrompt(false);
         await startPolling();
-        
+
         startStatsCollection(globalContext);
     }
     updateStatusBar();
@@ -264,7 +250,7 @@ async function handleToggle(context) {
 
         if (isEnabled) {
             log('auto-all-Antigravity: Enabled');
-            
+
             ensureCDPOrPrompt(true).then(() => startPolling());
             startStatsCollection(context);
             incrementSessionCount(context);
@@ -311,7 +297,7 @@ async function handleFrequencyUpdate(context, freq) {
 }
 
 async function handleBannedCommandsUpdate(context, commands) {
-    
+
     if (!isPro) {
         log('Banned commands customization requires Pro');
         return;
@@ -346,7 +332,7 @@ async function handleBackgroundToggle(context) {
     const dontShowAgain = context.globalState.get(BACKGROUND_DONT_SHOW_KEY, false);
 
     if (!dontShowAgain && !backgroundModeEnabled) {
-        
+
         const choice = await vscode.window.showInformationMessage(
             'Turn on Multi-Tab Mode?\n\n' +
             'This lets auto-all-Antigravity work on all your open conversation tabs at once. ' +
@@ -372,7 +358,7 @@ async function handleBackgroundToggle(context) {
         await context.globalState.update(BACKGROUND_MODE_KEY, true);
         log('Background mode enabled');
     } else {
-        
+
         backgroundModeEnabled = !backgroundModeEnabled;
         await context.globalState.update(BACKGROUND_MODE_KEY, backgroundModeEnabled);
         log(`Background mode toggled: ${backgroundModeEnabled}`);
@@ -387,6 +373,56 @@ async function handleBackgroundToggle(context) {
     if (isEnabled) {
         syncSessions().catch(() => { });
     }
+}
+
+async function handleCycleState(context) {
+    log('=== handleCycleState CALLED ===');
+    log(`  Current state: isEnabled=${isEnabled}, backgroundModeEnabled=${backgroundModeEnabled}`);
+
+    // Cycle: OFF → ON+Single → ON+Multi → OFF
+    if (!isEnabled) {
+        // OFF → ON + Single Tab
+        isEnabled = true;
+        backgroundModeEnabled = false;
+        await context.globalState.update(GLOBAL_STATE_KEY, true);
+        await context.globalState.update(BACKGROUND_MODE_KEY, false);
+        log('  Cycled to: ON + Single Tab');
+
+        ensureCDPOrPrompt(true).then(() => startPolling());
+        startStatsCollection(context);
+        incrementSessionCount(context);
+
+    } else if (!backgroundModeEnabled) {
+        // ON + Single → ON + Multi-Tab
+        backgroundModeEnabled = true;
+        await context.globalState.update(BACKGROUND_MODE_KEY, true);
+        log('  Cycled to: ON + Multi-Tab');
+
+        if (isEnabled) {
+            syncSessions().catch(() => { });
+        }
+
+    } else {
+        // ON + Multi-Tab → OFF
+        isEnabled = false;
+        backgroundModeEnabled = false;
+        await context.globalState.update(GLOBAL_STATE_KEY, false);
+        await context.globalState.update(BACKGROUND_MODE_KEY, false);
+        log('  Cycled to: OFF');
+
+        if (cdpHandler) {
+            cdpHandler.getSessionSummary()
+                .then(summary => showSessionSummaryNotification(context, summary))
+                .catch(() => { });
+            cdpHandler.hideBackgroundOverlay().catch(() => { });
+        }
+
+        collectAndSaveStats(context).catch(() => { });
+        stopPolling().catch(() => { });
+    }
+
+    updateStatusBar();
+    log('=== handleCycleState COMPLETE ===');
 }
 
 async function syncSessions() {
@@ -459,7 +495,7 @@ async function stopPolling() {
 
 function getWeekStart() {
     const now = new Date();
-    const dayOfWeek = now.getDay(); 
+    const dayOfWeek = now.getDay();
     const diff = now.getDate() - dayOfWeek;
     const weekStart = new Date(now.setDate(diff));
     weekStart.setHours(0, 0, 0, 0);
@@ -584,15 +620,15 @@ async function showAwayActionsNotification(context, actionsCount) {
 }
 
 async function showBackgroundModeUpsell(context) {
-    if (isPro) return; 
+    if (isPro) return;
 
     const UPSELL_COOLDOWN_KEY = 'auto-all-bg-upsell-last';
-    const UPSELL_COOLDOWN_MS = 1000 * 60 * 30; 
+    const UPSELL_COOLDOWN_MS = 1000 * 60 * 30;
 
     const lastUpsell = context.globalState.get(UPSELL_COOLDOWN_KEY, 0);
     const now = Date.now();
 
-    if (now - lastUpsell < UPSELL_COOLDOWN_MS) return; 
+    if (now - lastUpsell < UPSELL_COOLDOWN_MS) return;
 
     await context.globalState.update(UPSELL_COOLDOWN_KEY, now);
 
@@ -636,7 +672,7 @@ async function collectAndSaveStats(context) {
     if (!cdpHandler) return;
 
     try {
-        
+
         const browserStats = await cdpHandler.resetStats();
 
         if (browserStats.clicks > 0 || browserStats.blocked > 0) {
@@ -648,7 +684,7 @@ async function collectAndSaveStats(context) {
             log(`ROI Stats collected: +${browserStats.clicks} clicks, +${browserStats.blocked} blocked (Total: ${currentStats.clicksThisWeek} clicks, ${currentStats.blockedThisWeek} blocked)`);
         }
     } catch (e) {
-        
+
     }
 }
 
@@ -665,7 +701,7 @@ function startStatsCollection(context) {
     statsCollectionTimer = setInterval(() => {
         if (isEnabled) {
             collectAndSaveStats(context);
-            checkForAwayActions(context); 
+            checkForAwayActions(context);
         }
     }, 30000);
 
@@ -675,51 +711,31 @@ function startStatsCollection(context) {
 function updateStatusBar() {
     if (!statusBarItem) return;
 
-    if (isEnabled) {
-        let statusText = 'ON';
-        let tooltip = `auto-all-Antigravity is running.`;
-        let bgColor = undefined;
+    // Create rich markdown tooltip
+    const createTooltip = (state, action) => {
+        const md = new vscode.MarkdownString();
+        md.isTrusted = true;
+        md.appendMarkdown(`**auto-all-Antigravity:** ${state}\n\n`);
+        md.appendMarkdown(`→ ${action}\n\n`);
+        md.appendMarkdown(`[⚙️ Open Settings](command:auto-all.openSettings)`);
+        return md;
+    };
 
-        if (cdpHandler && cdpHandler.getConnectionCount() > 0) {
-            tooltip += ' (CDP Connected)';
-        }
-
-        if (isLockedOut) {
-            statusText = 'PAUSED (Multi-window)';
-            bgColor = new vscode.ThemeColor('statusBarItem.warningBackground');
-        }
-
-        statusBarItem.text = `$(check) auto-all-Antigravity: ${statusText}`;
-        statusBarItem.tooltip = tooltip;
-        statusBarItem.backgroundColor = bgColor;
-
-        if (statusBackgroundItem) {
-            if (backgroundModeEnabled) {
-                statusBackgroundItem.text = '$(check-all) Multi-Tab: ON';
-                statusBackgroundItem.tooltip = 'Multi-Tab Mode is on. Click to turn off.';
-                statusBackgroundItem.backgroundColor = undefined;
-            } else {
-                statusBackgroundItem.text = '$(globe) Multi-Tab: OFF';
-                statusBackgroundItem.tooltip = 'Click to enable Multi-Tab Mode (auto-cycles through all conversation tabs).';
-                statusBackgroundItem.backgroundColor = undefined;
-            }
-            statusBackgroundItem.show();
-        }
-
+    if (!isEnabled) {
+        statusBarItem.text = '$(zap) OFF';
+        statusBarItem.tooltip = createTooltip('OFF', 'Click to enable (Single Tab)');
+    } else if (!backgroundModeEnabled) {
+        statusBarItem.text = '⚡ ON';
+        statusBarItem.tooltip = createTooltip('ON (Single Tab)', 'Click for Multi-Tab mode');
     } else {
-        statusBarItem.text = '$(circle-slash) auto-all-Antigravity: OFF';
-        statusBarItem.tooltip = 'Click to enable auto-all-Antigravity.';
-        statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
-
-        if (statusBackgroundItem) {
-            statusBackgroundItem.hide();
-        }
+        statusBarItem.text = '⚡ Multi';
+        statusBarItem.tooltip = createTooltip('ON (Multi-Tab)', 'Click to disable');
     }
 }
 
 async function checkInstanceLock() {
     if (isPro) return true;
-    if (!globalContext) return true; 
+    if (!globalContext) return true;
 
     const lockId = globalContext.globalState.get(LOCK_KEY);
     const lastHeartbeat = globalContext.globalState.get(HEARTBEAT_KEY, 0);

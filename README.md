@@ -1,3 +1,5 @@
+# auto-all-Antigravity
+
 <p align="center">
   <img src="media/icon.png" alt="auto-all-Antigravity Logo" width="128" />
 </p>
@@ -10,7 +12,7 @@
 
 <p align="center">
   <a href="https://open-vsx.org/extension/auto-all-antigravity/auto-all-antigravity">
-    <img src="https://img.shields.io/badge/Open%20VSX-v1.0.7-22c55e?style=for-the-badge&logo=eclipse-ide" alt="Open VSX Version" />
+    <img src="https://img.shields.io/badge/Open%20VSX-v1.0.9-22c55e?style=for-the-badge&logo=eclipse-ide" alt="Open VSX Version" />
   </a>
   <a href="https://github.com/ai-dev-2024/AUTO-ALL-AntiGravity/blob/master/LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License" />
@@ -36,6 +38,31 @@
 
 ---
 
+## ⚡ Status Bar Modes
+
+The extension lives in your status bar with clear, intuitive icons:
+
+| Icon | Mode | Description |
+|:---:|:---|:---|
+| `$(zap) OFF` | **Disabled** | Extension is off. Click to enable. |
+| `⚡ ON` | **Single Tab** | Monitors the active AI agent tab only. |
+| `⚡ Multi` | **Multi-Tab** | Monitors ALL agent tabs simultaneously. Perfect for Agent Manager mode. |
+
+### How to Use
+
+1. **Click the status bar icon** to cycle through modes: `OFF → ON → Multi → OFF`
+2. **Hover over the icon** to see current state and access settings
+3. **Click "Open Settings"** in the tooltip to access the dashboard
+
+### When to Use Each Mode
+
+| Mode | Best For |
+|:---|:---|
+| **⚡ ON** | Single agent workflows. Light on resources. |
+| **⚡ Multi** | Agent Manager with multiple concurrent agents. All tabs monitored in parallel. |
+
+---
+
 ## 📸 Dashboard
 
 <p align="center">
@@ -50,17 +77,17 @@ The sleek **Impact Dashboard** tracks your productivity gains in real-time:
 
 ---
 
-## ⚡ Key Features
+## 🔥 Key Features
 
 | Feature | Description |
 | :--- | :--- |
 | 🔄 **Auto-Accept File Edits** | Instantly applies AI-suggested code changes without clicking "Accept" |
 | 💻 **Auto-Execute Commands** | Runs terminal commands automatically—no more "Run" button clicks |
 | 🔁 **Auto-Recover Agents** | Detects and retries when AI agents get stuck or fail |
-| 🖥️ **Multi-Tab Mode** | Monitors all open AI sessions simultaneously |
+| ⚡ **Single & Multi-Tab Modes** | Choose between focused single-tab or parallel multi-tab monitoring |
 | 🛡️ **Safety Blocklist** | Prevents dangerous commands like `rm -rf /` from running |
 | 📊 **Impact Dashboard** | Visual stats on time and clicks saved |
-| ⚡ **Performance Modes** | Choose between Instant (1s) and Battery-saver modes |
+| ⚙️ **Smart Tooltip** | Hover for quick status and one-click settings access |
 
 ---
 
@@ -92,23 +119,28 @@ rmdir /s /q
 
 ### From VSIX File
 ```bash
-antigravity --install-extension auto-all-antigravity-1.0.6.vsix
+antigravity --install-extension auto-all-antigravity-1.0.9.vsix
 ```
 
 ### Verify Installation
-Look for **`auto-all-Antigravity: ON`** in your status bar.
+Look for **`⚡ ON`** or **`$(zap) OFF`** in your status bar.
 
 ---
 
 ## 🎮 Usage
 
+### Status Bar Controls
+- **Left-click**: Cycle through modes (OFF → ON → Multi → OFF)
+- **Hover**: See current state + click to open settings
+
+### Command Palette
+Press `Ctrl+Shift+P` and search for:
+
 | Command | Description |
 | :--- | :--- |
 | `auto-all-Antigravity: Toggle ON/OFF` | Enable/disable automation |
-| `auto-all-Antigravity: Toggle Multi-Tab Mode` | Monitor multiple AI sessions |
+| `auto-all-Antigravity: Toggle Multi-Tab Mode` | Switch between Single and Multi mode |
 | `auto-all-Antigravity: Settings` | Open the Impact Dashboard |
-
-Access via Command Palette (`Ctrl+Shift+P`).
 
 ---
 
