@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://open-vsx.org/extension/auto-all-antigravity/auto-all-antigravity">
+  <a href="https://open-vsx.org/extension/ai-dev-2024/auto-all-antigravity">
     <img src="https://img.shields.io/badge/Open%20VSX-v1.0.9-22c55e?style=for-the-badge&logo=eclipse-ide" alt="Open VSX Version" />
   </a>
   <a href="https://github.com/ai-dev-2024/AUTO-ALL-AntiGravity/blob/master/LICENSE">
@@ -24,7 +24,7 @@
 
 <p align="center">
   <a href="https://github.com/ai-dev-2024/AUTO-ALL-AntiGravity">GitHub</a> •
-  <a href="https://open-vsx.org/extension/auto-all-antigravity/auto-all-antigravity">Open VSX</a> •
+  <a href="https://open-vsx.org/extension/ai-dev-2024/auto-all-antigravity">Open VSX</a> •
   <a href="https://ko-fi.com/ai_dev_2024">☕ Support</a>
 </p>
 
