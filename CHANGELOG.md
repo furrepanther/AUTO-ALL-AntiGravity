@@ -2,6 +2,13 @@
 
 All notable changes to **auto-all-Antigravity** will be documented in this file.
 
+## [1.0.13] - 2026-01-03
+
+### Fixed
+- GitHub Actions workflow now handles re-runs gracefully when version is already published.
+
+---
+
 ## [1.0.12] - 2026-01-03
 
 ### Added
