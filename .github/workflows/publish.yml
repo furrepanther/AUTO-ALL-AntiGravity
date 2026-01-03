@@ -35,6 +35,7 @@ jobs:
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
       - name: Publish to Open VSX
+        continue-on-error: true
         run: npx ovsx publish *.vsix -p ${{ secrets.OVSX_PAT }}
 
       - name: Create GitHub Release
