@@ -12,7 +12,7 @@
 
 <p align="center">
   <a href="https://open-vsx.org/extension/ai-dev-2024/auto-all-antigravity">
-    <img src="https://img.shields.io/badge/Open%20VSX-v1.0.9-22c55e?style=for-the-badge&logo=eclipse-ide" alt="Open VSX Version" />
+    <img src="https://img.shields.io/badge/Open%20VSX-v1.0.11-22c55e?style=for-the-badge&logo=eclipse-ide" alt="Open VSX Version" />
   </a>
   <a href="https://github.com/ai-dev-2024/AUTO-ALL-AntiGravity/blob/master/LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License" />
@@ -88,6 +88,7 @@ The sleek **Impact Dashboard** tracks your productivity gains in real-time:
 | 🛡️ **Safety Blocklist** | Prevents dangerous commands like `rm -rf /` from running |
 | 📊 **Impact Dashboard** | Visual stats on time and clicks saved |
 | ⚙️ **Smart Tooltip** | Hover for quick status and one-click settings access |
+| 🔄 **Auto-Recovery** | Detects when CDP is lost and prompts to restore connection |
 
 ---
 
@@ -119,7 +120,7 @@ rmdir /s /q
 
 ### From VSIX File
 ```bash
-antigravity --install-extension auto-all-antigravity-1.0.9.vsix
+antigravity --install-extension auto-all-antigravity-1.0.11.vsix
 ```
 
 ### Verify Installation
@@ -151,6 +152,23 @@ Press `Ctrl+Shift+P` and search for:
 | ✅ **Antigravity** | Fully Tested |
 | ✅ **VS Code** | Fully Tested |
 | ✅ **Cursor** | Fully Tested |
+
+---
+
+## 🔗 Antigravity Manager Compatibility
+
+If you use **Antigravity Manager** to switch between accounts, the extension works seamlessly. For best results, ensure your Manager config (`~/.antigravity_tools/gui_config.json`) includes:
+
+```json
+{
+  "antigravity_executable": "C:\\Users\\YourUser\\AppData\\Local\\Programs\\Antigravity\\Antigravity.exe",
+  "antigravity_args": ["--remote-debugging-port=9000"]
+}
+```
+
+This ensures Antigravity is always launched with CDP (Chrome DevTools Protocol) enabled, which the extension requires for auto-accepting actions.
+
+> **Note**: If CDP is lost (e.g., Antigravity restarted without the flag), the extension will detect this and prompt you to relaunch.
 
 ---
 
