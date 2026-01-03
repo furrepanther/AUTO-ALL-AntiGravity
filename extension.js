@@ -45,6 +45,11 @@ let globalContext;
 let cdpHandler;
 let relauncher;
 
+// CDP health tracking for auto-recovery
+let hadCDPConnection = false;
+let lastRelaunchPromptTime = 0;
+const RELAUNCH_PROMPT_COOLDOWN = 60000; // 1 minute cooldown
+
 function log(message) {
     try {
         const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
@@ -265,6 +270,7 @@ async function handleToggle(context) {
 
             collectAndSaveStats(context).catch(() => { });
             stopPolling().catch(() => { });
+            hadCDPConnection = false; // Reset for next session
         }
 
         log('=== handleToggle COMPLETE ===');
@@ -419,6 +425,7 @@ async function handleCycleState(context) {
 
         collectAndSaveStats(context).catch(() => { });
         stopPolling().catch(() => { });
+        hadCDPConnection = false; // Reset for next session
     }
 
     updateStatusBar();
@@ -436,6 +443,23 @@ async function syncSessions() {
                 ide: currentIDE,
                 bannedCommands: bannedCommands
             });
+
+            // CDP health check for auto-recovery
+            const connectionCount = cdpHandler.getConnectionCount();
+
+            if (connectionCount > 0) {
+                hadCDPConnection = true;
+            } else if (hadCDPConnection && isEnabled) {
+                // We HAD connections but lost them - Antigravity probably restarted without CDP
+                const now = Date.now();
+                if (now - lastRelaunchPromptTime > RELAUNCH_PROMPT_COOLDOWN) {
+                    lastRelaunchPromptTime = now;
+                    log('CDP connection lost! Antigravity may have restarted. Prompting for relaunch...');
+                    if (relauncher) {
+                        relauncher.showRelaunchPrompt();
+                    }
+                }
+            }
         } catch (err) {
             log(`CDP: Sync error: ${err.message}`);
         }

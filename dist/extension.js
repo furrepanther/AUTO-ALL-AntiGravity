@@ -5211,6 +5211,9 @@ var currentIDE = "unknown";
 var globalContext;
 var cdpHandler;
 var relauncher;
+var hadCDPConnection = false;
+var lastRelaunchPromptTime = 0;
+var RELAUNCH_PROMPT_COOLDOWN = 6e4;
 function log(message) {
   try {
     const timestamp = (/* @__PURE__ */ new Date()).toISOString().split("T")[1].split(".")[0];
@@ -5391,6 +5394,7 @@ async function handleToggle(context) {
       });
       stopPolling().catch(() => {
       });
+      hadCDPConnection = false;
     }
     log("=== handleToggle COMPLETE ===");
   } catch (e) {
@@ -5517,6 +5521,7 @@ async function handleCycleState(context) {
     });
     stopPolling().catch(() => {
     });
+    hadCDPConnection = false;
   }
   updateStatusBar();
   log("=== handleCycleState COMPLETE ===");
@@ -5532,6 +5537,19 @@ async function syncSessions() {
         ide: currentIDE,
         bannedCommands
       });
+      const connectionCount = cdpHandler.getConnectionCount();
+      if (connectionCount > 0) {
+        hadCDPConnection = true;
+      } else if (hadCDPConnection && isEnabled) {
+        const now = Date.now();
+        if (now - lastRelaunchPromptTime > RELAUNCH_PROMPT_COOLDOWN) {
+          lastRelaunchPromptTime = now;
+          log("CDP connection lost! Antigravity may have restarted. Prompting for relaunch...");
+          if (relauncher) {
+            relauncher.showRelaunchPrompt();
+          }
+        }
+      }
     } catch (err) {
       log(`CDP: Sync error: ${err.message}`);
     }
