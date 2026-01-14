@@ -229,27 +229,29 @@ async function ensureCDPOrPrompt(showPrompt = false) {
 }
 
 async function checkEnvironmentAndStart() {
-    if (isEnabled) {
-        log('Initializing auto-all-Antigravity environment...');
+    log('Initializing auto-all-Antigravity environment...');
 
-        // Check if CDP is available
-        const cdpAvailable = cdpHandler ? await cdpHandler.isCDPAvailable() : false;
+    // Always check CDP availability on startup (even if disabled)
+    const cdpAvailable = cdpHandler ? await cdpHandler.isCDPAvailable() : false;
+    log(`CDP availability check: ${cdpAvailable}`);
 
-        if (!cdpAvailable && relauncher) {
-            // Auto-relaunch with CDP enabled (no prompts needed)
-            log('CDP not available. Auto-relaunching with CDP enabled...');
-            vscode.window.showInformationMessage('⚡ auto-all-Antigravity: Setting up CDP, restarting...');
+    if (!cdpAvailable && relauncher) {
+        // Auto-relaunch with CDP enabled (no prompts needed)
+        log('CDP not available. Auto-relaunching with CDP enabled...');
+        vscode.window.showInformationMessage('⚡ auto-all-Antigravity: Setting up CDP, restarting...');
 
-            const result = await relauncher.relaunchWithCDP();
-            if (result.success && result.action === 'relaunched') {
-                log('Relaunch initiated. Exiting current instance...');
-                return; // Will quit and relaunch
-            } else if (!result.success) {
-                log(`Auto-relaunch failed: ${result.message}`);
-                // Fall through to normal operation - user can manually trigger via status bar
-            }
+        const result = await relauncher.relaunchWithCDP();
+        if (result.success && result.action === 'relaunched') {
+            log('Relaunch initiated. Exiting current instance...');
+            return; // Will quit and relaunch
+        } else if (!result.success) {
+            log(`Auto-relaunch failed: ${result.message}`);
+            // Fall through to normal operation - user can manually trigger via status bar
         }
+    }
 
+    // Only start polling if enabled
+    if (isEnabled) {
         await startPolling();
         startStatsCollection(globalContext);
     }

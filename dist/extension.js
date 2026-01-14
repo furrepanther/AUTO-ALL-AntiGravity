@@ -5361,20 +5361,21 @@ async function ensureCDPOrPrompt(showPrompt = false) {
   }
 }
 async function checkEnvironmentAndStart() {
-  if (isEnabled) {
-    log("Initializing auto-all-Antigravity environment...");
-    const cdpAvailable = cdpHandler ? await cdpHandler.isCDPAvailable() : false;
-    if (!cdpAvailable && relauncher) {
-      log("CDP not available. Auto-relaunching with CDP enabled...");
-      vscode.window.showInformationMessage("\u26A1 auto-all-Antigravity: Setting up CDP, restarting...");
-      const result = await relauncher.relaunchWithCDP();
-      if (result.success && result.action === "relaunched") {
-        log("Relaunch initiated. Exiting current instance...");
-        return;
-      } else if (!result.success) {
-        log(`Auto-relaunch failed: ${result.message}`);
-      }
+  log("Initializing auto-all-Antigravity environment...");
+  const cdpAvailable = cdpHandler ? await cdpHandler.isCDPAvailable() : false;
+  log(`CDP availability check: ${cdpAvailable}`);
+  if (!cdpAvailable && relauncher) {
+    log("CDP not available. Auto-relaunching with CDP enabled...");
+    vscode.window.showInformationMessage("\u26A1 auto-all-Antigravity: Setting up CDP, restarting...");
+    const result = await relauncher.relaunchWithCDP();
+    if (result.success && result.action === "relaunched") {
+      log("Relaunch initiated. Exiting current instance...");
+      return;
+    } else if (!result.success) {
+      log(`Auto-relaunch failed: ${result.message}`);
     }
+  }
+  if (isEnabled) {
     await startPolling();
     startStatsCollection(globalContext);
   }

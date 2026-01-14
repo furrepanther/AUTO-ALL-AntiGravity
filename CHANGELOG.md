@@ -2,6 +2,13 @@
 
 All notable changes to **auto-all-Antigravity** will be documented in this file.
 
+## [1.0.15] - 2026-01-15
+
+### Fixed
+- **Auto-CDP now runs on startup**: Fixed bug where auto-CDP setup only ran when the extension was already enabled. Now it always ensures CDP is available on Antigravity startup, even for fresh installs or when previously disabled.
+
+---
+
 ## [1.0.14] - 2026-01-15
 
 ### Changed
