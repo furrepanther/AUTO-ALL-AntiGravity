@@ -231,9 +231,26 @@ async function ensureCDPOrPrompt(showPrompt = false) {
 async function checkEnvironmentAndStart() {
     if (isEnabled) {
         log('Initializing auto-all-Antigravity environment...');
-        await ensureCDPOrPrompt(false);
-        await startPolling();
 
+        // Check if CDP is available
+        const cdpAvailable = cdpHandler ? await cdpHandler.isCDPAvailable() : false;
+
+        if (!cdpAvailable && relauncher) {
+            // Auto-relaunch with CDP enabled (no prompts needed)
+            log('CDP not available. Auto-relaunching with CDP enabled...');
+            vscode.window.showInformationMessage('⚡ auto-all-Antigravity: Setting up CDP, restarting...');
+
+            const result = await relauncher.relaunchWithCDP();
+            if (result.success && result.action === 'relaunched') {
+                log('Relaunch initiated. Exiting current instance...');
+                return; // Will quit and relaunch
+            } else if (!result.success) {
+                log(`Auto-relaunch failed: ${result.message}`);
+                // Fall through to normal operation - user can manually trigger via status bar
+            }
+        }
+
+        await startPolling();
         startStatsCollection(globalContext);
     }
     updateStatusBar();

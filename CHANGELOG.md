@@ -2,6 +2,16 @@
 
 All notable changes to **auto-all-Antigravity** will be documented in this file.
 
+## [1.0.14] - 2026-01-15
+
+### Changed
+- **Auto-CDP Setup**: Extension now automatically relaunches Antigravity with CDP enabled on first activation, removing the need for manual "Setup & Restart" approval.
+
+### Fixed
+- Extension now works immediately after Antigravity is launched (no manual intervention required).
+
+---
+
 ## [1.0.13] - 2026-01-03
 
 ### Fixed
