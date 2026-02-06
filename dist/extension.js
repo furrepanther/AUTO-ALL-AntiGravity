@@ -64,6 +64,13 @@ var require_settings_panel = __commonJS({
               case "getBannedCommands":
                 this.sendBannedCommands();
                 break;
+              case "getAcceptPatterns":
+                this.sendAcceptPatterns();
+                break;
+              case "updateAcceptPatterns":
+                await this.context.globalState.update("auto-all-accept-patterns", message.patterns);
+                vscode2.commands.executeCommand("auto-all.updateAcceptPatterns", message.patterns);
+                break;
               case "upgrade":
                 this.openUpgrade(message.promoCode);
                 this.startPolling(this.getUserId());
@@ -153,6 +160,38 @@ var require_settings_panel = __commonJS({
         this.panel.webview.postMessage({
           command: "updateBannedCommands",
           bannedCommands: bannedCommands2
+        });
+      }
+      sendAcceptPatterns() {
+        const defaultPatterns = [
+          "accept",
+          "accept all",
+          "run",
+          "run command",
+          "retry",
+          "apply",
+          "execute",
+          "confirm",
+          "allow once",
+          "allow",
+          "always allow",
+          "always auto",
+          "proceed",
+          "continue",
+          "yes",
+          "ok",
+          "save",
+          "approve",
+          "enable",
+          "install",
+          "update",
+          "overwrite"
+        ];
+        const patterns = this.context.globalState.get("auto-all-accept-patterns", defaultPatterns);
+        this.panel.webview.postMessage({
+          command: "updateAcceptPatterns",
+          patterns,
+          defaultPatterns
         });
       }
       update() {
@@ -460,6 +499,63 @@ var require_settings_panel = __commonJS({
             .footer-link:hover {
                 color: var(--accent);
             }
+            
+            /* Checkbox toggle styling */
+            .pattern-item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 10px 12px;
+                background: var(--bg);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.2s;
+                user-select: none;
+            }
+            .pattern-item:hover {
+                border-color: var(--accent);
+                background: var(--bg-card-hover);
+            }
+            .pattern-item.active {
+                border-color: var(--accent);
+                background: var(--accent-dim);
+            }
+            .pattern-checkbox {
+                width: 18px;
+                height: 18px;
+                border: 2px solid var(--border);
+                border-radius: 4px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                transition: all 0.2s;
+            }
+            .pattern-item.active .pattern-checkbox {
+                background: var(--accent);
+                border-color: var(--accent);
+            }
+            .pattern-checkbox::after {
+                content: '\u2713';
+                color: #000;
+                font-size: 12px;
+                font-weight: bold;
+                opacity: 0;
+                transition: opacity 0.2s;
+            }
+            .pattern-item.active .pattern-checkbox::after {
+                opacity: 1;
+            }
+            .pattern-label {
+                font-size: 12px;
+                color: var(--fg-dim);
+                text-transform: capitalize;
+            }
+            .pattern-item.active .pattern-label {
+                color: var(--fg);
+                font-weight: 500;
+            }
         `;
         if (isPrompt) {
           return `<!DOCTYPE html>
@@ -557,6 +653,25 @@ var require_settings_panel = __commonJS({
                         </button>
                     </div>
                     <div id="bannedStatus" style="font-size: 12px; margin-top: 14px; text-align: center; height: 18px; font-weight: 600;"></div>
+                </div>
+
+                <div class="section">
+                    <div class="section-label">
+                        <span>\u{1F3AF} AUTO-ACCEPT BUTTONS</span>
+                        <span id="patternsStatus" style="color: var(--accent);"></span>
+                    </div>
+                    <div style="font-size: 13px; color: var(--fg-dim); margin-bottom: 18px; line-height: 1.6;">
+                        Select which button types to <strong>automatically click</strong>. Changes are saved instantly.
+                    </div>
+                    <div id="patternsGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;"></div>
+                    <div style="display: flex; gap: 14px; margin-top: 22px;">
+                        <button id="selectAllPatternsBtn" class="btn-outline" style="flex: 1;">
+                            \u2713 Select All
+                        </button>
+                        <button id="resetPatternsBtn" class="btn-outline" style="flex: 1;">
+                            \u21BA Reset to Defaults
+                        </button>
+                    </div>
                 </div>
 
                 <div class="footer">
@@ -657,10 +772,71 @@ var require_settings_panel = __commonJS({
                             bannedInput.value = msg.bannedCommands.join('\\n');
                         }
                     }
+                    if (msg.command === 'updateAcceptPatterns') {
+                        if (msg.patterns && msg.defaultPatterns) {
+                            renderPatterns(msg.patterns, msg.defaultPatterns);
+                        }
+                    }
                 });
 
                 refreshStats();
                 vscode.postMessage({ command: 'getBannedCommands' });
+                vscode.postMessage({ command: 'getAcceptPatterns' });
+
+                // Accept patterns management
+                const patternsGrid = document.getElementById('patternsGrid');
+                const patternsStatus = document.getElementById('patternsStatus');
+                const selectAllBtn = document.getElementById('selectAllPatternsBtn');
+                const resetPatternsBtn = document.getElementById('resetPatternsBtn');
+                let currentPatterns = [];
+                let allPatterns = [];
+
+                function renderPatterns(patterns, defaults) {
+                    currentPatterns = patterns;
+                    allPatterns = defaults;
+                    patternsGrid.innerHTML = '';
+                    
+                    defaults.forEach(pattern => {
+                        const isActive = patterns.includes(pattern);
+                        const item = document.createElement('div');
+                        item.className = 'pattern-item' + (isActive ? ' active' : '');
+                        item.innerHTML = '<div class="pattern-checkbox"></div><span class="pattern-label">' + pattern + '</span>';
+                        item.addEventListener('click', () => togglePattern(pattern));
+                        patternsGrid.appendChild(item);
+                    });
+                }
+
+                function togglePattern(pattern) {
+                    const idx = currentPatterns.indexOf(pattern);
+                    if (idx >= 0) {
+                        currentPatterns.splice(idx, 1);
+                    } else {
+                        currentPatterns.push(pattern);
+                    }
+                    savePatterns();
+                }
+
+                function savePatterns() {
+                    vscode.postMessage({ command: 'updateAcceptPatterns', patterns: currentPatterns });
+                    renderPatterns(currentPatterns, allPatterns);
+                    patternsStatus.innerText = '\u2713 Saved';
+                    setTimeout(() => { patternsStatus.innerText = ''; }, 2000);
+                }
+
+                if (selectAllBtn) {
+                    selectAllBtn.addEventListener('click', () => {
+                        currentPatterns = [...allPatterns];
+                        savePatterns();
+                    });
+                }
+
+                if (resetPatternsBtn) {
+                    resetPatternsBtn.addEventListener('click', () => {
+                        currentPatterns = [...allPatterns];
+                        savePatterns();
+                        patternsStatus.innerText = '\u2713 Defaults Restored';
+                    });
+                }
             </script>
         </body>
         </html>`;
@@ -5199,6 +5375,7 @@ var isPro = false;
 var isLockedOut = false;
 var pollFrequency = 2e3;
 var bannedCommands = [];
+var acceptPatterns = [];
 var backgroundModeEnabled = false;
 var BACKGROUND_DONT_SHOW_KEY = "auto-all-background-dont-show";
 var BACKGROUND_MODE_KEY = "auto-all-background-mode";
@@ -5311,6 +5488,8 @@ async function activate(context) {
       vscode.commands.registerCommand("auto-all.toggleBackground", () => handleBackgroundToggle(context)),
       vscode.commands.registerCommand("auto-all.updateBannedCommands", (commands) => handleBannedCommandsUpdate(context, commands)),
       vscode.commands.registerCommand("auto-all.getBannedCommands", () => bannedCommands),
+      vscode.commands.registerCommand("auto-all.updateAcceptPatterns", (patterns) => handleAcceptPatternsUpdate(context, patterns)),
+      vscode.commands.registerCommand("auto-all.getAcceptPatterns", () => acceptPatterns),
       vscode.commands.registerCommand("auto-all.getROIStats", async () => {
         const stats = await loadROIStats(context);
         const timeSavedSeconds = stats.clicksThisWeek * SECONDS_PER_CLICK;
@@ -5448,6 +5627,14 @@ async function handleBannedCommandsUpdate(context, commands) {
     await syncSessions();
   }
 }
+async function handleAcceptPatternsUpdate(context, patterns) {
+  acceptPatterns = Array.isArray(patterns) ? patterns : [];
+  await context.globalState.update("auto-all-accept-patterns", acceptPatterns);
+  log(`Accept patterns updated: ${acceptPatterns.length} patterns`);
+  if (isEnabled) {
+    await syncSessions();
+  }
+}
 async function handleBackgroundToggle(context) {
   log("Background toggle clicked");
   if (!isPro) {
@@ -5547,7 +5734,8 @@ async function syncSessions() {
         isBackgroundMode: backgroundModeEnabled,
         pollInterval: pollFrequency,
         ide: currentIDE,
-        bannedCommands
+        bannedCommands,
+        acceptPatterns
       });
       const connectionCount = cdpHandler.getConnectionCount();
       if (connectionCount > 0) {

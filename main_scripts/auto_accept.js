@@ -47,11 +47,23 @@ function isAcceptButton(el) {
         { pattern: 'retry', exact: true },
         { pattern: 'try again', exact: false },
         { pattern: 'confirm', exact: false },
-        { pattern: 'Allow Once', exact: true }
+        { pattern: 'Allow Once', exact: true },
+        { pattern: 'always allow', exact: false },
+        { pattern: 'always auto', exact: false },
+        { pattern: 'proceed', exact: false },
+        { pattern: 'continue', exact: false },
+        { pattern: 'yes', exact: true },
+        { pattern: 'ok', exact: true },
+        { pattern: 'save', exact: false },
+        { pattern: 'approve', exact: false },
+        { pattern: 'enable', exact: false },
+        { pattern: 'install', exact: false },
+        { pattern: 'update', exact: false },
+        { pattern: 'overwrite', exact: false }
     ];
 
     // define the types that are not targetted
-    const REJECT_PATTERNS = ['skip', 'reject', 'cancel', 'discard', 'deny', 'close', 'refine', 'other'];
+    const REJECT_PATTERNS = ['skip', 'reject', 'cancel', 'discard', 'deny', 'close', 'refine', 'other', 'no', 'dismiss', 'abort'];
 
     if (!el || !el.textContent) return false;
 

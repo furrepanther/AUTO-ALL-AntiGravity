@@ -29,6 +29,7 @@ let isPro = false;
 let isLockedOut = false;
 let pollFrequency = 2000;
 let bannedCommands = [];
+let acceptPatterns = [];
 
 let backgroundModeEnabled = false;
 const BACKGROUND_DONT_SHOW_KEY = 'auto-all-background-dont-show';
@@ -169,6 +170,8 @@ async function activate(context) {
             vscode.commands.registerCommand('auto-all.toggleBackground', () => handleBackgroundToggle(context)),
             vscode.commands.registerCommand('auto-all.updateBannedCommands', (commands) => handleBannedCommandsUpdate(context, commands)),
             vscode.commands.registerCommand('auto-all.getBannedCommands', () => bannedCommands),
+            vscode.commands.registerCommand('auto-all.updateAcceptPatterns', (patterns) => handleAcceptPatternsUpdate(context, patterns)),
+            vscode.commands.registerCommand('auto-all.getAcceptPatterns', () => acceptPatterns),
             vscode.commands.registerCommand('auto-all.getROIStats', async () => {
                 const stats = await loadROIStats(context);
                 const timeSavedSeconds = stats.clicksThisWeek * SECONDS_PER_CLICK;
@@ -338,6 +341,15 @@ async function handleBannedCommandsUpdate(context, commands) {
     }
 }
 
+async function handleAcceptPatternsUpdate(context, patterns) {
+    acceptPatterns = Array.isArray(patterns) ? patterns : [];
+    await context.globalState.update('auto-all-accept-patterns', acceptPatterns);
+    log(`Accept patterns updated: ${acceptPatterns.length} patterns`);
+    if (isEnabled) {
+        await syncSessions();
+    }
+}
+
 async function handleBackgroundToggle(context) {
     log('Background toggle clicked');
 
@@ -460,7 +472,8 @@ async function syncSessions() {
                 isBackgroundMode: backgroundModeEnabled,
                 pollInterval: pollFrequency,
                 ide: currentIDE,
-                bannedCommands: bannedCommands
+                bannedCommands: bannedCommands,
+                acceptPatterns: acceptPatterns
             });
 
             // CDP health check for auto-recovery

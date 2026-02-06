@@ -2,6 +2,28 @@
 
 All notable changes to **auto-all-Antigravity** will be documented in this file.
 
+## [1.0.17] - 2026-02-06
+
+### Added
+- **Configurable Button Patterns**: New dashboard section "AUTO-ACCEPT BUTTONS" with checkbox toggles for each button type
+- Users can now customize which buttons get auto-accepted (accept, run, proceed, continue, yes, ok, save, etc.)
+- Changes are saved instantly with auto-save functionality
+- "Select All" and "Reset to Defaults" quick actions
+
+### Fixed
+- **Expanded auto-accept button patterns**: Now catches permission dialogs like "Always Allow", "Allow Once", "Proceed", "Continue", "Yes", "OK", "Save", etc.
+- **Wider button selectors**: The antigravity loop now scans for general buttons and role="button" elements
+
+---
+
+## [1.0.16] - 2026-02-06
+
+### Fixed
+- **Expanded auto-accept button patterns**: Now catches permission dialogs like "Always Allow", "Allow Once", "Proceed", "Continue", "Yes", "OK", "Save", etc.
+- **Wider button selectors**: The antigravity loop now scans for general buttons and role="button" elements in addition to `.bg-ide-button-background`, fixing issues where permission prompts weren't being auto-accepted.
+
+---
+
 ## [1.0.15] - 2026-01-15
 
 ### Fixed
