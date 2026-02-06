@@ -188,9 +188,8 @@ class SettingsPanel {
     sendAcceptPatterns() {
         const defaultPatterns = [
             'accept', 'accept all', 'run', 'run command', 'retry', 'apply',
-            'execute', 'confirm', 'allow once', 'allow', 'always allow',
-            'always auto', 'proceed', 'continue', 'yes', 'ok', 'save',
-            'approve', 'enable', 'install', 'update', 'overwrite'
+            'execute', 'confirm', 'allow once', 'allow', 'proceed', 'continue',
+            'yes', 'ok', 'save', 'approve', 'enable', 'install', 'update', 'overwrite'
         ];
         const patterns = this.context.globalState.get('auto-all-accept-patterns', defaultPatterns);
         this.panel.webview.postMessage({

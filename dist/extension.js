@@ -174,8 +174,6 @@ var require_settings_panel = __commonJS({
           "confirm",
           "allow once",
           "allow",
-          "always allow",
-          "always auto",
           "proceed",
           "continue",
           "yes",
