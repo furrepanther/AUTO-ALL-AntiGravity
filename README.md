@@ -120,7 +120,7 @@ rmdir /s /q
 
 ### From VSIX File
 ```bash
-antigravity --install-extension auto-all-antigravity-1.0.18.vsix
+antigravity --install-extension auto-all-antigravity-1.0.21.vsix
 ```
 
 ### Verify Installation
@@ -152,6 +152,17 @@ Press `Ctrl+Shift+P` and search for:
 | ✅ **Antigravity** | Fully Tested |
 | ✅ **VS Code** | Fully Tested |
 | ✅ **Cursor** | Fully Tested |
+
+---
+
+## 📅 Antigravity Version Compatibility
+
+| Extension Version | Antigravity Tested On | Notes |
+| :--- | :--- | :--- |
+| **v1.0.21** (Latest) | February 2026 | Handles new "Always run" permission dropdown |
+| v1.0.17 and below | January 2026 and earlier | May not handle new permission UI |
+
+> **Note**: Antigravity updates may introduce new UI elements. If you encounter issues after an Antigravity update, check for a newer extension version or [open an issue](https://github.com/ai-dev-2024/AUTO-ALL-AntiGravity/issues).
 
 ---
 

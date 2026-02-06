@@ -2,6 +2,15 @@
 
 All notable changes to **auto-all-Antigravity** will be documented in this file.
 
+## [1.0.21] - 2026-02-06
+
+### Fixed
+- **Complete Dropdown Fix**: Removed 'always allow' and 'always auto' from accept patterns in all files
+  - Extension now fully ignores "Always run" / "Ask every time" permission dropdowns
+  - Fixed issue where dropdown patterns were still in settings-panel.js defaults
+
+---
+
 ## [1.0.20] - 2026-02-06
 
 ### Fixed
