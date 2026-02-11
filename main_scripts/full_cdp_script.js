@@ -805,50 +805,42 @@
     }
 
     // Expand collapsed sections to reveal hidden steps that need approval
+    // IMPORTANT: Only targets specific "Expand" links next to step requirement messages
+    // in the agent panel - NOT dropdowns, menus, model selectors, or other UI elements
     function expandCollapsedSections() {
         let expanded = 0;
-        // Look for elements that indicate expandable/collapsed sections
-        const expandSelectors = [
-            'button',
-            '[role="button"]',
-            'a',
-            'span[class*="expand"]',
-            'div[class*="expand"]',
-            'span[class*="collapse"]',
-            'div[class*="collapse"]',
-            '[class*="chevron"]',
-            '[class*="arrow"]'
-        ];
 
-        for (const selector of expandSelectors) {
-            const elements = queryAll(selector);
-            for (const el of elements) {
-                const text = (el.textContent || '').trim().toLowerCase();
-                // Match "Expand", "Show more", "Show all", "View details", "N steps", etc.
-                const isExpandable = (
-                    text === 'expand' ||
-                    text.includes('expand') ||
-                    text.includes('show more') ||
-                    text.includes('show all') ||
-                    text.includes('view details') ||
-                    text.includes('view all') ||
-                    // Match "N Step Requires Input" pattern
-                    /\d+\s*steps?\s*(require|need)/i.test(text) ||
-                    // Match "Collapse all" with aria-expanded
-                    (el.getAttribute('aria-expanded') === 'false')
-                );
+        // Strategy: Look for text patterns like "N Step Requires Input" or "Expand" 
+        // that appear specifically in the agent conversation area
+        const agentPanel = document.querySelector('#antigravity\\.agentPanel') ||
+            document.querySelector('[class*="agent"]') ||
+            document;
 
-                if (isExpandable && text.length < 100) {
-                    const style = window.getComputedStyle(el);
-                    const rect = el.getBoundingClientRect();
-                    const isVisible = style.display !== 'none' && rect.width > 0 && rect.height > 0;
+        // Only look for specific clickable text links, not all buttons
+        const candidates = agentPanel.querySelectorAll('a, span[role="button"], [class*="expand-link"], [class*="expandable"]');
 
-                    if (isVisible) {
-                        log(`[Expand] Clicking expand element: "${text.substring(0, 50)}"`);
-                        el.dispatchEvent(new MouseEvent('click', { view: window, bubbles: true, cancelable: true }));
-                        expanded++;
-                    }
-                }
+        for (const el of candidates) {
+            const text = (el.textContent || '').trim().toLowerCase();
+
+            // Only match very specific expand patterns related to steps
+            const isStepExpand = (
+                text === 'expand' ||
+                text === 'expand all' ||
+                text === 'collapse all' ||
+                // "N Step Requires Input" with nearby expand
+                /^\d+\s*steps?\s*(require|need)/i.test(text)
+            );
+
+            if (!isStepExpand || text.length > 50) continue;
+
+            const style = window.getComputedStyle(el);
+            const rect = el.getBoundingClientRect();
+            const isVisible = style.display !== 'none' && rect.width > 0 && rect.height > 0;
+
+            if (isVisible) {
+                log(`[Expand] Clicking step expand: "${text}"`);
+                el.dispatchEvent(new MouseEvent('click', { view: window, bubbles: true, cancelable: true }));
+                expanded++;
             }
         }
         return expanded;
