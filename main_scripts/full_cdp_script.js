@@ -960,11 +960,14 @@
             cycle++;
             log(`[Loop] Cycle ${cycle}: Starting...`);
 
-            // First, expand any collapsed sections to reveal hidden steps
+            // First, try to click "Always run" dropdown if visible
+            clickAlwaysRunDropdown();
+
+            // Expand any collapsed sections to reveal hidden steps
             const expanded = expandCollapsedSections();
             if (expanded > 0) {
                 log(`[Loop] Cycle ${cycle}: Expanded ${expanded} collapsed sections`);
-                await workerDelay(300); // Wait for expansion animation
+                await workerDelay(150); // Brief wait for expansion animation
             }
 
             // Then click accept buttons
@@ -973,7 +976,7 @@
                 log(`[Loop] Cycle ${cycle}: Clicked ${clicked} accept buttons`);
             }
 
-            await workerDelay(500);
+            await workerDelay(200);
 
             const tabs = queryAll('button.grow');
             log(`[Loop] Cycle ${cycle}: Found ${tabs.length} tabs`);
@@ -989,7 +992,7 @@
                     targetTab.dispatchEvent(new MouseEvent('click', { view: window, bubbles: true, cancelable: true }));
                     index++;
 
-                    await workerDelay(800);
+                    await workerDelay(300);
 
                     const badges = queryAll('span').filter(s => {
                         const t = s.textContent.trim();
@@ -1009,7 +1012,7 @@
 
             updateOverlay();
 
-            await workerDelay(1500);
+            await workerDelay(400);
         }
         log('[Loop] antigravityLoop STOPPED');
     }
@@ -1112,7 +1115,9 @@
                 log(`Starting static poll loop...`);
                 (async function staticLoop() {
                     while (state.isRunning && state.sessionID === sid) {
-                        // First, expand any collapsed sections
+                        // First, try to click "Always run" dropdown if visible
+                        clickAlwaysRunDropdown();
+                        // Expand any collapsed sections
                         expandCollapsedSections();
                         // Then click accept buttons (scoped by isInConversationArea guard)
                         performClick(['.bg-ide-button-background', 'button', '[role="button"]', '[class*="button"]']);
