@@ -13,3 +13,4 @@ vsix_check/**
 temp_extract/**
 package-lock.json
 CONTRIBUTING.md
+dist/**

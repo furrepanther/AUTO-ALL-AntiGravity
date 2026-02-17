@@ -145,13 +145,13 @@ Download the latest `.vsix` from [GitHub Releases](https://github.com/ai-dev-202
 
 ```bash
 # Antigravity
-antigravity --install-extension auto-all-antigravity-1.0.26.vsix
+antigravity --install-extension auto-all-antigravity-1.0.28.vsix
 
 # VS Code
-code --install-extension auto-all-antigravity-1.0.26.vsix
+code --install-extension auto-all-antigravity-1.0.28.vsix
 
 # Cursor
-cursor --install-extension auto-all-antigravity-1.0.26.vsix
+cursor --install-extension auto-all-antigravity-1.0.28.vsix
 ```
 
 ### Verify Installation
@@ -196,11 +196,11 @@ Press `Ctrl+Shift+P` and search for:
 
 | Extension Version | Date | Key Changes |
 | :--- | :--- | :--- |
-| **v1.0.26** (Latest) | Feb 2026 | Sponsor button, enhanced Ko-Fi visibility, richer marketplace metadata |
+| **v1.0.28** (Latest) | Feb 2026 | 3x faster response, fixed Always Run re-clicking, fixed auto-expand and auto-accept completely |
+| v1.0.27 | Feb 2026 | Fixed auto-accept not clicking buttons due to text contamination |
+| v1.0.26 | Feb 2026 | Sponsor button, enhanced Ko-Fi visibility, richer marketplace metadata |
 | v1.0.25 | Feb 2026 | Fixed auto-expand for steps requiring input, scoped clicking to agent panel only |
 | v1.0.23 | Feb 2026 | Added auto-expand for collapsed sections |
-| v1.0.22 | Feb 2026 | Faster polling (60% reduction in response times) |
-| v1.0.21 | Feb 2026 | Handles "Always run" permission dropdown |
 | v1.0.17 | Feb 2026 | Configurable button patterns dashboard |
 | v1.0.14 | Jan 2026 | Auto-CDP setup on first activation |
 | v1.0.10 | Jan 2026 | Multi-Tab mode, Impact Dashboard, Safety blocklist |
@@ -234,8 +234,8 @@ Releases are fully automated via **GitHub Actions**:
 3. Commit and push a version tag:
 
    ```bash
-   git tag v1.0.26
-   git push origin v1.0.26
+   git tag v1.0.28
+   git push origin v1.0.28
    ```
 
 4. GitHub Actions automatically:

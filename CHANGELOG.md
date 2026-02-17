@@ -9,6 +9,12 @@ All notable changes to **auto-all-Antigravity** will be documented in this file.
 - **Auto-Accept Completely Broken**: Fixed critical bug where `isInConversationArea()` defaulted to rejecting all buttons when Antigravity updated its DOM structure. Changed default from reject to accept — the exclusion list (sidebar, editor, toolbar) remains the active guard against erratic clicking.
 - **Auto-Expand Not Clicking "Expand >"**: Fixed `expandCollapsedSections()` using exact text match (`=== 'expand'`) which didn't match Antigravity's "Expand >" link text. Now uses `startsWith('expand')` for resilient matching.
 - **Button Text Contamination**: Improved button text extraction with `getButtonOwnText()` to prevent "Always run" checkbox text from contaminating nearby "Run All" button detection.
+- **"Always Run" Clicked Repeatedly**: Added `always run`, `always allow`, `always proceed`, `always auto` to the reject list in `isAcceptButton()` — the dedicated `clickAlwaysRunDropdown()` (one-shot) now handles it exclusively.
+
+### Improved
+
+- **3x Faster Response Time**: Reduced multi-tab loop delays from ~2.8s to ~1.0s per cycle (expand: 300→150ms, post-click: 500→200ms, tab-switch: 800→300ms, cycle-end: 1500→400ms)
+- **Always Run Dropdown**: `clickAlwaysRunDropdown()` now called in both single-tab and multi-tab loops
 
 ---
 
